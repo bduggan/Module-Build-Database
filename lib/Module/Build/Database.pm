@@ -56,7 +56,7 @@ auto/ will have two automatically generated files :
     dump.sql -- a single file which will create an empty database
     applied.txt -- a list of the patches which have been applied to create dump.sql
 
-Appling the patches in applied.txt one after the other will be
+Applying the patches in applied.txt one after the other will be
 equivalent to applying "dump.sql".
 
 Module::Build::Database provides the following actions for ./Build :
@@ -103,6 +103,21 @@ Module::Build::Database provides the following actions for ./Build :
  3. Add an entry to the patches_applied table for each patch applied.
 
 =back
+
+=head1 NOTES
+
+The db/ directory should be installed when the module is
+installed.  Then, enough information will be available at
+run-time to determine whether or not a database is up-to-date,
+and to apply the missing patches, in case it is not.
+
+Patches will be applied in lexicographic order, so their
+names should start with a sequence of digits, e.g.
+0010_something.sql, 0020_something_else.sql, etc.
+
+=head1 SEE ALSO
+
+mbd-tool
 
 =cut
 
