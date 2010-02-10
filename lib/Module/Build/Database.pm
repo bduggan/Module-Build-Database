@@ -33,8 +33,11 @@ the database.
 
 When applying patches to a live database, the list of patches that
 have been applied is stored in the database itself.  When creating
-a schema, the list of patches that comprise the schema is stored
+a schema dump, the list of patches that comprise the schema is stored
 in a flat file.
+
+During run time, the flat file and the database table may be compared,
+in order to assure that the database is up to date.
 
 A "patch" refers to a file which can be sent to a database's
 command line client like this :
@@ -117,7 +120,8 @@ names should start with a sequence of digits, e.g.
 
 =head1 SEE ALSO
 
-mbd-tool
+mbd-tool -- a command line tool for applying bringing the running database
+up to date.
 
 =cut
 
