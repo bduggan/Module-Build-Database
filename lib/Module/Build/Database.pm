@@ -171,6 +171,10 @@ sub new {
 sub _find_patch_files {
     my $self = shift;
     my @filenames = glob $self->base_dir.'/db/patches/*.sql';
+    my @bad = grep { $_ !~ m|/\d{4}[^/]+$| } @filenames;
+    if (@bad) {
+        die "\nBad patch files : @bad\nAll files must start with at least 4 digits.\n";
+    }
     @filenames;
 }
 
@@ -183,6 +187,9 @@ sub _read_patches_applied_file {
 
 sub ACTION_dbtest {
     my $self = shift;
+
+    # 0. remove any old stuff
+    $self->_cleanup_old_dbs();
 
     # 1. Start a new empty database instance.
     $self->_start_new_db();
@@ -219,6 +226,9 @@ sub ACTION_dbtest {
 
     # 4. Shut down the database instance.
     $self->_stop_db();
+
+    # and remove it
+    $self->_remove_db();
 }
 
 sub ACTION_dbclean {

@@ -32,6 +32,7 @@ Postgres driver for Module::Build::Database.
 package Module::Build::Database::PostgreSQL;
 use base 'Module::Build::Database';
 use File::Temp qw/tempdir/;
+use File::Path qw/rmtree/;
 use IO::File;
 
 __PACKAGE__->add_property(database_options    => default => { name => "foo", schema => "bar" });
@@ -52,17 +53,32 @@ sub _do_system {
         _info "fake: system call : @_";
         return;
     }
-    system(@_) == 0
-      or die "Error with system call '@_' : $? "
-      . ( ${^CHILD_ERROR_NATIVE} || '' );
+    system("@_") == 0
+      or do {
+        warn "Error with '@_' : $? " . ( ${^CHILD_ERROR_NATIVE} || '' ) . "\n";
+        return 0;
+      };
+    return 1;
 }
 sub _do_psql {
     my $sql = shift;
-    _do_system($Psql,"-c",$sql);
+    _do_system($Psql,"-v'ON_ERROR_STOP=1'","-c",$sql);
 }
 sub _do_psql_file {
     my $filename = shift;
-    _do_system($Psql,"-f",$filename);
+    _do_system($Psql,"-v'ON_ERROR_STOP=1'","-f",$filename);
+}
+
+sub _cleanup_old_dbs {
+    my $tmpdir = tempdir("mbdtest_XXXXXX", TMPDIR => 1);
+    my $glob = $tmpdir;
+    $glob =~ s/mbdtest_.*$/mbdtest_*/;
+    for my $this (glob $glob) {
+        next if $this eq $tmpdir;
+        _info "cleaning up old tmpdir : $this";
+        rmtree($this);
+    }
+    rmtree $tmpdir;
 }
 
 sub _start_new_db {
@@ -70,18 +86,20 @@ sub _start_new_db {
 
     my $database_name   = $self->database_options('name');
     my $database_schema = $self->database_options('schema');
-    my $tmpdir          = tempdir();
-    $self->_tmp_db_dir($tmpdir);
-    my $logfile         = "$tmpdir/init.log";
+    my $tmpdir          = tempdir("mbdtest_XXXXXX", TMPDIR => 1);
+    my $dbdir           = $tmpdir."/db";
+    my $logfile         = "$tmpdir/postgres.log";
+    $self->_tmp_db_dir($dbdir);
 
-    $ENV{PGHOST} = "$tmpdir"; # makes psql use a socket, not a tcp port0
+    $ENV{PGHOST} = "$dbdir"; # makes psql use a socket, not a tcp port0
     $ENV{PGDATABASE} = $database_name;
 
-    _info "creating database (in $tmpdir)";
+    _info "creating database (in $dbdir)";
 
-    _do_system($Initdb, "-D", "$tmpdir", ">", "$logfile", "2>&1", "&");
+    _do_system($Initdb, "-D", "$dbdir", ">>", "$logfile", "2>&1") or die "could not initdb";
 
-    _do_system($Postgres, "-D", "$tmpdir", "-k", "$tmpdir", -h, '', ">", "$logfile", '2>&1', '&');
+    _do_system($Postgres, "-D", "$dbdir", "-k", "$dbdir", "-h ''", ">>", "$logfile", '2>&1', '&')
+        or die "could not start postgres";
 
     while (! -e "$logfile" or not grep /ready/, IO::File->new("<$logfile")->getlines ) {
         _info "waiting for postgres to start..($logfile)";
@@ -89,10 +107,10 @@ sub _start_new_db {
         last if $ENV{MBD_FAKE};
     }
 
-    _do_system($Createdb, $database_name);
+    _do_system($Createdb, $database_name) or die "could not createdb";
 
     for my $lang (@{ $self->database_extensions("languages") }) {
-        _do_system($Createlang, $lang);
+        _do_system($Createlang, $lang) or die "could not create language $lang";
     }
 
     if (my $postgis = $self->database_extensions('postgis')) {
@@ -105,10 +123,19 @@ sub _start_new_db {
 
 }
 
-sub _stop_db {
+sub _remove_db {
     my $self = shift;
-    my $tmpdir = $self->_tmp_db_dir();
-    my $pid_file = "$tmpdir/postmaster.pid";
+    return if $ENV{MBD_DONT_STOP_TEST_DB};
+    my $dbdir = $self->_tmp_db_dir();
+    $dbdir =~ s/\/db$//;
+    rmtree $dbdir;
+}
+
+sub _stop_db {
+    return if $ENV{MBD_DONT_STOP_TEST_DB};
+    my $self = shift;
+    my $dbdir = $self->_tmp_db_dir();
+    my $pid_file = "$dbdir/postmaster.pid";
     unless (-e $pid_file) {
         _info "no pid file ($pid_file), not stopping db";
         return;
@@ -116,10 +143,10 @@ sub _stop_db {
     my ($pid) = IO::File->new("<$pid_file")->getlines;
     chomp $pid;
     kill "TERM", $pid;
-    sleep 1;
-    my $i = 1;
-    while (kill 0, $pid and $i < 10) {
+    my $i = 2;
+    while ($i < 10 ) {
         sleep $i++;
+        return unless kill 0, $pid;
         _info "waiting for $pid to stop";
     }
     _info "db didn't stop, forcing shutdown";
@@ -136,8 +163,7 @@ sub _apply_patch {
     my $self = shift;
     my $patch_file = shift;
 
-    _do_psql_file($self->base_dir."/db/patches/$patch_file");
-    return 1;
+    return _do_psql_file($self->base_dir."/db/patches/$patch_file");
 }
 
 sub ACTION_dbtest        { shift->SUPER::ACTION_dbtest(@_);        }
