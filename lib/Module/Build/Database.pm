@@ -182,7 +182,16 @@ sub _find_patch_files {
 # the filenames, and whose values are information about the
 # patch.
 sub _read_patches_applied_file {
-
+    my $self = shift;
+    my %h;
+    my $readme = join '/', $self->base_dir, qw(db dist patches_applied.txt);
+    return %h unless -e $readme;
+    my @lines = IO::File->new("<$readme")->getlines;
+    for my $line (@lines) {
+        my @info = split /\s+/, $line;
+        $h{$info[0]} = \@info;
+    }
+    return %h;
 }
 
 sub ACTION_dbtest {
@@ -208,8 +217,10 @@ sub ACTION_dbtest {
 
     my %patches_applied = $self->_read_patches_applied_file();
 
-    my @todo = sort map { basename $_ }
-      grep { !exists( $patches_applied{$_} ) } $self->_find_patch_files;
+    my @todo = sort
+                  grep { !exists( $patches_applied{$_} ) }
+                      map { basename $_ }
+                          $self->_find_patch_files;
 
     print "1..".@todo."\n";
     my $i = 1;
