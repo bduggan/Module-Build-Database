@@ -68,13 +68,13 @@ successfully, "dbfakeinstall" may be run, which does the following :
 If the comparison in step 3 is the same, then one may conclude that applying
 the missing patches will produce the desired schema.
 
-The actions added by this subclass are as follows :
+=head1 ACTIONS
 
 =over
 
 =item dbdist
 
-This creates the file db/dist/base.sql.
+This (re-)generates the files db/dist/base.sql and db/dist/patches_applied.txt.
 
 It does this by reading patches from db/patches/*.sql,
 applying the ones that are not listed in db/dist/patches_applied.txt,
@@ -147,6 +147,8 @@ which are associated with Perl modules.
 
 package Module::Build::Database;
 use File::Basename qw/basename/;
+use File::Path qw/mkpath/;
+use Digest::MD5;
 use warnings;
 use strict;
 use base 'Module::Build';
@@ -167,15 +169,21 @@ sub new {
     return $subclass->new(%args);
 }
 
-# Return an array of filenames that are patches.
+# Return an array of patch filenames.
+# Send (pending => 1) to omit applied patches.
 sub _find_patch_files {
     my $self = shift;
-    my @filenames = glob $self->base_dir.'/db/patches/*.sql';
-    my @bad = grep { $_ !~ m|/\d{4}[^/]+$| } @filenames;
+    my %args = @_;
+    my $pending = $args{pending};
+
+    my @filenames = sort map { basename $_ } glob $self->base_dir.'/db/patches/*.sql';
+    my @bad = grep { $_ !~ /^\d{4}/ } @filenames;
     if (@bad) {
         die "\nBad patch files : @bad\nAll files must start with at least 4 digits.\n";
     }
-    @filenames;
+    return @filenames unless $pending;
+    my %applied = $self->_read_patches_applied_file();
+    return grep { !exists( $applied{$_} ) } @filenames;
 }
 
 # Read patches_applied.txt, return a hash whose keys are
@@ -197,30 +205,19 @@ sub _read_patches_applied_file {
 sub ACTION_dbtest {
     my $self = shift;
 
-    # 0. remove any old stuff
-    $self->_cleanup_old_dbs();
-
     # 1. Start a new empty database instance.
     $self->_start_new_db();
 
     # 2. Apply db/dist/base.sql.
-    if (-e $self->base_dir."/db/dist/base.sql") {
-        $self->_apply_base_sql();
-    } else {
-        _info "No base sql, creating new database.";
-    }
+    _info "Applying base.sql";
+    $self->_apply_base_sql();
 
     # 3. Apply any patches in db/patches/*.sql that are
     #    not in db/dist/patches_applied.txt.
     #    For each of the above, the tests will fail if any of the
     #    patches do not apply cleanly.
 
-    my %patches_applied = $self->_read_patches_applied_file();
-
-    my @todo = sort
-                  grep { !exists( $patches_applied{$_} ) }
-                      map { basename $_ }
-                          $self->_find_patch_files;
+    my @todo = $self->_find_patch_files(pending => 1);
 
     print "1..".@todo."\n";
     my $i = 1;
@@ -244,11 +241,46 @@ sub ACTION_dbtest {
 
 sub ACTION_dbclean {
     # Remove any test databases created, stop any daemons.
+    die "NOT IMPLEMENTED";
 }
 
 sub ACTION_dbdist {
     my $self = shift;
 
+    # 1. Start a new empty database instance.
+    $self->_start_new_db();
+
+    # 2. Populate the schema using db/dist/base.sql.
+    _info "Applying base.sql";
+    $self->_apply_base_sql();
+
+    # 3. For every pending patch, apply, and add to patches_applied.txt.
+    my %applied = $self->_read_patches_applied_file();
+    my @todo    = $self->_find_patch_files( pending => 1 );
+    my $dbdist  = $self->base_dir . '/db/dist';
+    -d $dbdist or mkpath $dbdist;
+    my $patches_file = "$dbdist/patches_applied.txt";
+    my $fp = IO::File->new(">>$patches_file") or die "error: $!";
+    for my $filename (@todo) {
+        my $hash = Digest::MD5->new()->addfile(
+                    IO::File->new( "<" .$self->base_dir . '/db/patches/' . $filename ) )
+                  ->hexdigest;
+        $self->_apply_patch($filename) or die "Failed to apply $filename";
+        print ${fp} (join "\t", $filename, $hash)."\n";
+        _info "Applied patch $filename";
+    }
+    $fp->close;
+    _info "Wrote $patches_file" if @todo;
+
+    # 4. Dump the new schema out to db/dist/base.sql
+    $self->_dump_base_sql();
+    _info "Wrote $dbdist/base.sql";
+
+    # 5. Stop the database.
+    $self->_stop_db();
+
+    # 6. Wipe it.
+    $self->_remove_db();
 }
 
 sub ACTION_dbdocs {
