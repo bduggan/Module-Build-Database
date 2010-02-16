@@ -286,16 +286,19 @@ sub ACTION_dbdist {
 sub ACTION_dbdocs {
     my $self = shift;
 
+    die "not implemented";
 }
 
 sub ACTION_dbinstall {
     my $self = shift;
 
+    die "not implemented";
 }
 
 sub ACTION_dbfakeinstall {
     my $self = shift;
 
+    die "not implemented";
 }
 
 1;
