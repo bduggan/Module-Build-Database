@@ -44,7 +44,7 @@ use File::Path qw/rmtree/;
 use IO::File;
 
 __PACKAGE__->add_property(database_options    => default => { name => "foo", schema => "bar" });
-__PACKAGE__->add_property(database_extensions => default => { languages => [], postgis => 0 } );
+__PACKAGE__->add_property(database_extensions => default => { postgis => 0 } );
 __PACKAGE__->add_property(postgis_base        => default => "/usr/local/share/postgis" );
 __PACKAGE__->add_property(_tmp_db_dir         => default => "" );
 
@@ -61,6 +61,7 @@ sub _do_system {
         _info "fake: system call : @_";
         return;
     }
+    #warn "doing------- @_\n";
     system("@_") == 0
       or do {
         warn "Error with '@_' : $? " . ( ${^CHILD_ERROR_NATIVE} || '' ) . "\n";
@@ -71,7 +72,7 @@ sub _do_system {
 sub _do_psql {
     my $sql = shift;
     # -q: quiet, ON_ERROR_STOP: throw exceptions
-    _do_system( $Psql, "-q", "-v'ON_ERROR_STOP=1'", "-c", $sql );
+    _do_system( $Psql, "-q", "-v'ON_ERROR_STOP=1'", "-c", "'$sql'" );
 }
 sub _do_psql_file {
     my $filename = shift;
@@ -121,15 +122,20 @@ sub _start_new_db {
     }
 
     _do_system($Createdb, $database_name) or die "could not createdb";
+    _do_psql("create schema $database_schema");
 
-    #_do_psql("alter database $database_name set client_min_messages to ERROR");
+    _do_psql("alter database $database_name set client_min_messages to ERROR");
 
     if (my $postgis = $self->database_extensions('postgis')) {
-        my $postgis_schema = $postgis->{schema};
-        _do_psql("alter database $database_name set search_path to $postgis_schema");
+        _info "applying postgis extension";
+        my $postgis_schema = $postgis->{schema} or die "No schema given for postgis";
+        _do_psql("create schema $postgis_schema") unless $postgis_schema eq 'public';
+        _do_psql("alter database $database_name set search_path to $postgis_schema;");
+        _do_psql("create procedural language plpgsql");
+        # We need to run "createlang plpgsql" first.
         _do_psql_file($self->postgis_base. "/postgis.sql") or die "could not do postgis.sql";
         _do_psql_file($self->postgis_base. "/spatial_ref_sys.sql") or die "could not do spatial_ref_sys.sql";
-        _do_psql("alter database $database_name set search_path to $postgis_schema, $database_schema");
+        _do_psql("alter database $database_name set search_path to $database_schema, $postgis_schema");
     }
 
 }
@@ -158,7 +164,7 @@ sub _stop_db {
     while ($i < 10 ) {
         sleep $i++;
         return unless kill 0, $pid;
-        _info "waiting for $pid to stop";
+        _info "waiting for pid $pid to stop";
     }
     _info "db didn't stop, forcing shutdown";
     kill 9, $pid or _info "could not send signal to $pid";
@@ -179,8 +185,12 @@ sub _dump_base_sql {
     );
     $tmpfile->close;
 
-    # -x : no privileges, -O : no owner, -s : schema only
-    _do_system( $Pgdump, "-xOs", ">", "$tmpfile" ) or return 0;
+    # -x : no privileges, -O : no owner, -s : schema only, -n : only this schema
+    my $database_schema = $self->database_options('schema');
+    _do_system( $Pgdump, "-xOs", "-n", $database_schema, "|",
+        "egrep -v '^CREATE SCHEMA $database_schema;\$'",
+        ">", "$tmpfile" )
+      or return 0;
     rename "$tmpfile", $self->base_dir . "/db/dist/base.sql"
       or die "rename failed: $!";
 }

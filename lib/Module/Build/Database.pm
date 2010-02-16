@@ -209,7 +209,7 @@ sub ACTION_dbtest {
     $self->_start_new_db();
 
     # 2. Apply db/dist/base.sql.
-    _info "Applying base.sql";
+    _info "applying base.sql";
     $self->_apply_base_sql();
 
     # 3. Apply any patches in db/patches/*.sql that are
@@ -219,7 +219,8 @@ sub ACTION_dbtest {
 
     my @todo = $self->_find_patch_files(pending => 1);
 
-    print "1..".@todo."\n";
+    _info "no unapplied patches" unless @todo;
+    print "1..".@todo."\n" if @todo;
     my $i = 1;
     my $passes = 0;
     for my $filename (@todo) {
@@ -251,7 +252,7 @@ sub ACTION_dbdist {
     $self->_start_new_db();
 
     # 2. Populate the schema using db/dist/base.sql.
-    _info "Applying base.sql";
+    _info "applying base.sql";
     $self->_apply_base_sql();
 
     # 3. For every pending patch, apply, and add to patches_applied.txt.
