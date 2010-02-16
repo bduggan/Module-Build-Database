@@ -290,13 +290,13 @@ sub ACTION_dbdocs {
     die "not implemented";
 }
 
-sub ACTION_dbinstall {
+sub ACTION_dbfakeinstall {
     my $self = shift;
 
     die "not implemented";
 }
 
-sub ACTION_dbfakeinstall {
+sub ACTION_dbinstall {
     my $self = shift;
 
     die "not implemented";

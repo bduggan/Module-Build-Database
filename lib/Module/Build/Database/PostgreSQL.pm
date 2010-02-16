@@ -42,6 +42,8 @@ use base 'Module::Build::Database';
 use File::Temp qw/tempdir/;
 use File::Path qw/rmtree/;
 use IO::File;
+use strict;
+use warnings;
 
 __PACKAGE__->add_property(database_options    => default => { name => "foo", schema => "bar" });
 __PACKAGE__->add_property(database_extensions => default => { postgis => 0 } );
@@ -81,13 +83,15 @@ sub _do_psql_file {
 }
 
 sub _cleanup_old_dbs {
+    my $self = shift;
     my $tmpdir = tempdir("mbdtest_XXXXXX", TMPDIR => 1);
     my $glob = $tmpdir;
     $glob =~ s/mbdtest_.*$/mbdtest_*/;
-    for my $this (glob $glob) {
-        next if $this eq $tmpdir;
-        _info "cleaning up old tmpdir : $this";
-        rmtree($this);
+    for my $thisdir (glob $glob) {
+        next if $thisdir eq $tmpdir;
+        _info "cleaning up old tmp instance : $thisdir";
+        $self->_stop_db("$thisdir/db");
+        rmtree($thisdir);
     }
     rmtree $tmpdir;
 }
@@ -149,9 +153,9 @@ sub _remove_db {
 }
 
 sub _stop_db {
-    return if $ENV{MBD_DONT_STOP_TEST_DB};
     my $self = shift;
-    my $dbdir = $self->_tmp_db_dir();
+    return if $ENV{MBD_DONT_STOP_TEST_DB};
+    my $dbdir = shift || $self->_tmp_db_dir();
     my $pid_file = "$dbdir/postmaster.pid";
     unless (-e $pid_file) {
         _info "no pid file ($pid_file), not stopping db";
