@@ -28,12 +28,11 @@ Postgres driver for Module::Build::Database.
 
 =head1 NOTES
 
-Many of the command-line utilities provided with postgres
-have SQL equivalents.  Using the SQL versions in one of the
-patch files avoids reliance on these utilities, e.g.
-a 0000_base.sql might have things like
-
-  CREATE PROCEDURAL LANGUAGE plpgsql;
+The environment variables used by psql will
+be honored when connecting to an existing
+instance (e.g. for fakeinstall and install).
+These variables are PGUSER, PGHOST, PGPORT,
+and PGDATABASE;
 
 =cut
 
@@ -41,6 +40,7 @@ package Module::Build::Database::PostgreSQL;
 use base 'Module::Build::Database';
 use File::Temp qw/tempdir/;
 use File::Path qw/rmtree/;
+use File::Basename qw/dirname/;
 use IO::File;
 use strict;
 use warnings;
@@ -59,6 +59,7 @@ our $Pgdump     = 'pg_dump';
 
 sub _info($) { print STDERR shift(). "\n"; }
 sub _do_system {
+    my $silent = ($_[0] eq '_silent' ? shift : 0);
     if ($ENV{MBD_FAKE}) {
         _info "fake: system call : @_";
         return;
@@ -66,7 +67,7 @@ sub _do_system {
     #warn "doing------- @_\n";
     system("@_") == 0
       or do {
-        warn "Error with '@_' : $? " . ( ${^CHILD_ERROR_NATIVE} || '' ) . "\n";
+        warn "Error with '@_' : $? " . ( ${^CHILD_ERROR_NATIVE} || '' ) . "\n" unless $silent;
         return 0;
       };
     return 1;
@@ -76,10 +77,21 @@ sub _do_psql {
     # -q: quiet, ON_ERROR_STOP: throw exceptions
     _do_system( $Psql, "-q", "-v'ON_ERROR_STOP=1'", "-c", "'$sql'" );
 }
+sub _do_psql_out {
+    my $sql = shift;
+    # -F field separator, -x extended output, -A: unaligned
+    _do_system( $Psql, "-q", "-v'ON_ERROR_STOP=1'", "-A", "-F ' : '", "-x", "-c", "'$sql'" );
+}
 sub _do_psql_file {
     my $filename = shift;
     # -q: quiet, ON_ERROR_STOP: throw exceptions
     _do_system($Psql,"-q","-v'ON_ERROR_STOP=1'","-f",$filename);
+}
+sub _do_psql_into_file {
+    my $filename = shift;
+    my $sql      = shift;
+    # -A: unaligned, -F: field separator, -t: tuples only, ON_ERROR_STOP: throw exceptions
+    _do_system( $Psql, "-q", "-v'ON_ERROR_STOP=1'", "-A", "-F '\t'", "-t", "-c", qq["$sql"], ">", "$filename" );
 }
 
 sub _cleanup_old_dbs {
@@ -110,6 +122,8 @@ sub _start_new_db {
 
     $ENV{PGHOST}     = "$dbdir"; # makes psql use a socket, not a tcp port0
     $ENV{PGDATABASE} = $database_name;
+    delete $ENV{PGUSER};
+    delete $ENV{PGPORT};
 
     _info "creating database (log: $initlog)";
 
@@ -182,9 +196,14 @@ sub _apply_base_sql {
 }
 
 sub _dump_base_sql {
+    # One optional parameter gives the name of the file into which to dump the schema.
+    # If the parameter is omitted, dump and atomically rename to db/dist/base.sql.
     my $self = shift;
+    my %args = @_;
+    my $outfile = $args{outfile} || $self->base_dir. "/db/dist/base.sql";
+
     my $tmpfile = File::Temp->new(
-        TEMPLATE => $self->base_dir . "/db/dist/dump_XXXXXX",
+        TEMPLATE => (dirname $outfile)."/dump_XXXXXX",
         UNLINK   => 0
     );
     $tmpfile->close;
@@ -195,8 +214,7 @@ sub _dump_base_sql {
         "egrep -v '^CREATE SCHEMA $database_schema;\$'",
         ">", "$tmpfile" )
       or return 0;
-    rename "$tmpfile", $self->base_dir . "/db/dist/base.sql"
-      or die "rename failed: $!";
+    rename "$tmpfile", $outfile or die "rename failed: $!";
 }
 
 sub _apply_patch {
@@ -204,6 +222,45 @@ sub _apply_patch {
     my $patch_file = shift;
 
     return _do_psql_file($self->base_dir."/db/patches/$patch_file");
+}
+
+sub _is_fresh_install {
+    my $self = shift;
+
+    my $file = File::Temp->new(); $file->close;
+    my $database_schema = $self->database_options('schema');
+    _do_psql_into_file("$file","\\dn $database_schema");
+    return !_do_system("_silent","grep -q $database_schema $file");
+}
+
+sub _show_live_db {
+    # Display the database to which changes will be applied.
+    my $self = shift;
+
+    _info "PGUSER     : " . ( $ENV{PGUSER}     || "<undef>" );
+    _info "PGHOST     : " . ( $ENV{PGHOST}     || "<undef>" );
+    _info "PGPORT     : " . ( $ENV{PGPORT}     || "<undef>" );
+    _info "PGDATABASE : " . ( $ENV{PGDATABASE} || "<undef>" );
+
+    _do_psql_out("select current_database(),session_user,version();");
+
+}
+
+sub _patch_table_exists {
+    # returns true or false
+    my $self = shift;
+    my $file = File::Temp->new(); $file->close;
+    _do_psql_into_file("$file","select tablename from pg_tables where tablename='patches_applied'");
+    return _do_system("_silent","grep -q patches_applied $file");
+}
+
+sub _dump_patch_table {
+    # Dump the patch table in an existing db into a flat file, that
+    # will be in the same format as patches_applied.txt.
+    my $self = shift;
+    my %args = @_;
+    my $filename = $args{outfile} or die "need a filename";
+    _do_psql_into_file($filename,"select patch_name,patch_md5 from patches_applied order by patch_name");
 }
 
 sub ACTION_dbtest        { shift->SUPER::ACTION_dbtest(@_);        }

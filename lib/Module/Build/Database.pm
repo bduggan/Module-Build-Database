@@ -118,9 +118,10 @@ test databases that have been created.
  1. Look for a running database, based on environment variables.
  2. Display the connection information obtained from the above.
  3. Dump the schema from the live database to a temporary directory.
- 4. Apply patches listed in db/dist/patches_applied.txt that are not
+ 4. Make a temporary database using the above schema.
+ 5. Apply patches listed in db/dist/patches_applied.txt that are not
     in the patches_applied table.
- 5. Dump out the resulting schema, and compare it to db/dist/base.sql.
+ 6. Dump out the resulting schema, and compare it to db/dist/base.sql.
 
 =item dbinstall
 
@@ -293,7 +294,34 @@ sub ACTION_dbdocs {
 sub ACTION_dbfakeinstall {
     my $self = shift;
 
-    die "not implemented";
+    # 1. Look for a running database, based on environment variables.
+    # 2. Display the connection information obtained from the above.
+
+    $self->_show_live_db();
+
+    # 3. Dump the schema from the live database to a temporary directory.
+    my $existing_schema = File::Temp->new();
+    $existing_schema->close;
+    if ($self->_is_fresh_install()) {
+        _info "Ready to create the base database.";
+    } else {
+        $self->_dump_base_sql(outfile => "$existing_schema");
+    }
+
+    # 4. Dump the patch table.
+    my $patches_applied = File::Temp->new(UNLINK => 0);
+    $patches_applied->close;
+    if ($self->_patch_table_exists()) {
+        $self->_dump_patch_table(outfile => "$patches_applied");
+    } else {
+        _info "There is no patches_applied table, it will be created.";
+    }
+
+    # 4. Apply patches listed in db/dist/patches_applied.txt that are not
+    #    in the patches_applied table.
+    # $self->_start_new_db();
+
+    # 5. Dump out the resulting schema, and compare it to db/dist/base.sql.
 }
 
 sub ACTION_dbinstall {
