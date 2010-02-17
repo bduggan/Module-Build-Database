@@ -73,21 +73,28 @@ sub _do_system {
     return 1;
 }
 sub _do_psql {
+    my $self = shift;
     my $sql = shift;
+    my $database_name  = $self->database_options('name');
     # -q: quiet, ON_ERROR_STOP: throw exceptions
-    _do_system( $Psql, "-q", "-v'ON_ERROR_STOP=1'", "-c", "'$sql'" );
+    _do_system( $Psql, "-q", "-v'ON_ERROR_STOP=1'", "-c", "'$sql'", $database_name );
 }
 sub _do_psql_out {
+    my $self = shift;
     my $sql = shift;
+    my $database_name  = $self->database_options('name');
     # -F field separator, -x extended output, -A: unaligned
-    _do_system( $Psql, "-q", "-v'ON_ERROR_STOP=1'", "-A", "-F ' : '", "-x", "-c", "'$sql'" );
+    _do_system( $Psql, "-q", "-v'ON_ERROR_STOP=1'", "-A", "-F ' : '", "-x", "-c", qq["$sql"], $database_name );
 }
 sub _do_psql_file {
+    my $self = shift;
     my $filename = shift;
+    my $database_name  = $self->database_options('name');
     # -q: quiet, ON_ERROR_STOP: throw exceptions
-    _do_system($Psql,"-q","-v'ON_ERROR_STOP=1'","-f",$filename);
+    _do_system($Psql,"-q","-v'ON_ERROR_STOP=1'","-f",$filename, $database_name);
 }
 sub _do_psql_into_file {
+    my $self = shift;
     my $filename = shift;
     my $sql      = shift;
     # -A: unaligned, -F: field separator, -t: tuples only, ON_ERROR_STOP: throw exceptions
@@ -139,24 +146,9 @@ sub _start_new_db {
         last if $ENV{MBD_FAKE};
     }
 
-    _do_system($Createdb, $database_name) or die "could not createdb";
-    _do_psql("create schema $database_schema");
-
-    _do_psql("alter database $database_name set client_min_messages to ERROR");
-
-    if (my $postgis = $self->database_extensions('postgis')) {
-        _info "applying postgis extension";
-        my $postgis_schema = $postgis->{schema} or die "No schema given for postgis";
-        _do_psql("create schema $postgis_schema") unless $postgis_schema eq 'public';
-        _do_psql("alter database $database_name set search_path to $postgis_schema;");
-        _do_psql("create procedural language plpgsql");
-        # We need to run "createlang plpgsql" first.
-        _do_psql_file($self->postgis_base. "/postgis.sql") or die "could not do postgis.sql";
-        _do_psql_file($self->postgis_base. "/spatial_ref_sys.sql") or die "could not do spatial_ref_sys.sql";
-        _do_psql("alter database $database_name set search_path to $database_schema, $postgis_schema");
-    }
-
+    $self->_init_database();
 }
+
 
 sub _remove_db {
     my $self = shift;
@@ -192,7 +184,7 @@ sub _apply_base_sql {
     my $self = shift;
 
     return unless -e $self->base_dir."/db/dist/base.sql";
-    _do_psql_file($self->base_dir. "/db/dist/base.sql");
+    $self->_do_psql_file($self->base_dir. "/db/dist/base.sql");
 }
 
 sub _dump_base_sql {
@@ -221,15 +213,21 @@ sub _apply_patch {
     my $self = shift;
     my $patch_file = shift;
 
-    return _do_psql_file($self->base_dir."/db/patches/$patch_file");
+    return $self->_do_psql_file($self->base_dir."/db/patches/$patch_file");
 }
 
 sub _is_fresh_install {
     my $self = shift;
 
+    my $database_name = $self->database_options('name');
+    unless (_database_exists($database_name)) {
+        _info "database $database_name does not exist";
+        return 1;
+    }
+
     my $file = File::Temp->new(); $file->close;
     my $database_schema = $self->database_options('schema');
-    _do_psql_into_file("$file","\\dn $database_schema");
+    $self->_do_psql_into_file("$file","\\dn $database_schema");
     return !_do_system("_silent","grep -q $database_schema $file");
 }
 
@@ -242,7 +240,7 @@ sub _show_live_db {
     _info "PGPORT     : " . ( $ENV{PGPORT}     || "<undef>" );
     _info "PGDATABASE : " . ( $ENV{PGDATABASE} || "<undef>" );
 
-    _do_psql_out("select current_database(),session_user,version();");
+    $self->_do_psql_out("select current_database(),session_user,version();");
 
 }
 
@@ -250,7 +248,8 @@ sub _patch_table_exists {
     # returns true or false
     my $self = shift;
     my $file = File::Temp->new(); $file->close;
-    _do_psql_into_file("$file","select tablename from pg_tables where tablename='patches_applied'");
+    $self->_do_psql_out("select tablename from pg_tables where tablename='patches_applied'");
+    $self->_do_psql_into_file("$file","select tablename from pg_tables where tablename='patches_applied'");
     return _do_system("_silent","grep -q patches_applied $file");
 }
 
@@ -260,7 +259,53 @@ sub _dump_patch_table {
     my $self = shift;
     my %args = @_;
     my $filename = $args{outfile} or die "need a filename";
-    _do_psql_into_file($filename,"select patch_name,patch_md5 from patches_applied order by patch_name");
+    $self->_do_psql_into_file($filename,"select patch_name,patch_md5 from patches_applied order by patch_name");
+}
+
+sub _create_patch_table {
+    my $self = shift;
+    # create a new patch table
+    my $sql = <<EOSQL;
+    CREATE TABLE patches_applied (
+        patch_name   varchar(255),
+        patch_md5    varchar(255),
+        when_applied timestamp );
+EOSQL
+    $self->_do_psql($sql);
+}
+
+sub _database_exists {
+    my $dbname = shift;
+    _do_system("_silent","psql -Alt -F ':' | egrep -q '^$dbname:'");
+}
+
+sub _init_database {
+    my $self = shift;
+
+    my $database_name   = $self->database_options('name');
+    my $database_schema = $self->database_options('schema');
+
+    # create the database if necessary
+    unless (_database_exists($database_name)) {
+        _do_system($Createdb, $database_name) or die "could not createdb";
+    }
+
+    # Create a fresh schema in the database.
+    $self->_do_psql("create schema $database_schema");
+
+    $self->_do_psql("alter database $database_name set client_min_messages to ERROR");
+
+    if (my $postgis = $self->database_extensions('postgis')) {
+        _info "applying postgis extension";
+        my $postgis_schema = $postgis->{schema} or die "No schema given for postgis";
+        $self->_do_psql("create schema $postgis_schema") unless $postgis_schema eq 'public';
+        $self->_do_psql("alter database $database_name set search_path to $postgis_schema;");
+        $self->_do_psql("create procedural language plpgsql");
+        # We need to run "createlang plpgsql" first.
+        $self->_do_psql_file($self->postgis_base. "/postgis.sql") or die "could not do postgis.sql";
+        $self->_do_psql_file($self->postgis_base. "/spatial_ref_sys.sql") or die "could not do spatial_ref_sys.sql";
+        $self->_do_psql("alter database $database_name set search_path to $database_schema, $postgis_schema");
+    }
 }
 
 sub ACTION_dbtest        { shift->SUPER::ACTION_dbtest(@_);        }

@@ -304,6 +304,7 @@ sub ACTION_dbfakeinstall {
     $existing_schema->close;
     if ($self->_is_fresh_install()) {
         _info "Ready to create the base database.";
+        return;
     } else {
         $self->_dump_base_sql(outfile => "$existing_schema");
     }
@@ -320,12 +321,26 @@ sub ACTION_dbfakeinstall {
     # 4. Apply patches listed in db/dist/patches_applied.txt that are not
     #    in the patches_applied table.
     # $self->_start_new_db();
+    die "not implemented";
 
     # 5. Dump out the resulting schema, and compare it to db/dist/base.sql.
 }
 
 sub ACTION_dbinstall {
     my $self = shift;
+
+    if ($self->_is_fresh_install()) {
+        _info "Fresh install; applying base.sql";
+        $self->_init_database() or die "could not initialize database\n";
+        $self->_apply_base_sql() or die "could not apply base sql\n";
+    }
+    unless ($self->_patch_table_exists()) {
+        _info "Creating a new patch table";
+        $self->_create_patch_table() or die "could not create patch table\n";
+    }
+    #  1. Look for a running database, based on environment variables
+    #  2. Apply any patches in db/patches/ that are not in the patches_applied table.
+    #  3. Add an entry to the patches_applied table for each patch applied.
 
     die "not implemented";
 }
