@@ -14,3 +14,5 @@ DESCRIPTION
 This is a subclass of Module::Build that adds functionality
 for keeping a database schema up to date.
 
+See the pod for more documentation.
+See eg/ for sample usage.
