@@ -1,4 +1,4 @@
-Module-Build-Database
+Module-Build-Database -- build a databases module::build style
 
 INSTALLATION
 
@@ -16,3 +16,4 @@ for keeping a database schema up to date.
 
 See the pod for more documentation.
 See eg/ for sample usage.
+
