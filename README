@@ -9,3 +9,8 @@ To install this module, run the following commands:
     ./Build test
     ./Build install
 
+DESCRIPTION
+
+This is a subclass of Module::Build that adds functionality
+for keeping a database schema up to date.
+
