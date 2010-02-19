@@ -187,13 +187,14 @@ sub _find_patch_files {
     return grep { !exists( $applied{$_} ) } @filenames;
 }
 
-# Read patches_applied.txt, return a hash whose keys are
-# the filenames, and whose values are information about the
-# patch.
+# Read patches_applied.txt or $args{filename}, return a hash whose
+# keys are the filenames, and whose values are information about
+# the patch.
 sub _read_patches_applied_file {
     my $self = shift;
+    my %args = @_;
     my %h;
-    my $readme = join '/', $self->base_dir, qw(db dist patches_applied.txt);
+    my $readme = $args{filename} || join '/', $self->base_dir, qw(db dist patches_applied.txt);
     return %h unless -e $readme;
     my @lines = IO::File->new("<$readme")->getlines;
     for my $line (@lines) {
@@ -310,18 +311,31 @@ sub ACTION_dbfakeinstall {
     }
 
     # 4. Dump the patch table.
-    my $patches_applied = File::Temp->new(UNLINK => 0);
+    my $patches_applied = File::Temp->new();
     $patches_applied->close;
     if ($self->_patch_table_exists()) {
         $self->_dump_patch_table(outfile => "$patches_applied");
     } else {
         _info "There is no patches_applied table, it will be created.";
+        unlink "$patches_applied" or die "error unlinking $patches_applied: $!";
     }
 
     # 4. Apply patches listed in db/dist/patches_applied.txt that are not
     #    in the patches_applied table.
+    # 4a. Determine list of patches to apply.
+    my %done_patches = $self->_read_patches_applied_file(filename => "$patches_applied");
+    my %all_patches  = $self->_read_patches_applied_file;
+    my @todo = grep { !$done_patches{$_} } sort keys %all_patches;
+    for my $patch (sort keys %done_patches) {
+        next if "@{ $done_patches{$patch} }" eq "@{ $all_patches{$patch} }";
+        _info "WARNING: @{ $done_patches{$patch} } != @{ $all_patches{$patch} }";
+    }
+    for my $patch (@todo) {
+        _info "Will apply patch $patch";
+    }
+
     # $self->_start_new_db();
-    die "not implemented";
+    die "not implemented, compare resulting schemas";
 
     # 5. Dump out the resulting schema, and compare it to db/dist/base.sql.
 }

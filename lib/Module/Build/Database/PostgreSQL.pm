@@ -29,10 +29,10 @@ Postgres driver for Module::Build::Database.
 =head1 NOTES
 
 The environment variables used by psql will
-be honored when connecting to an existing
-instance (e.g. for fakeinstall and install).
-These variables are PGUSER, PGHOST, PGPORT,
-and PGDATABASE;
+PGUSER, PGHOST, PGPORT will be used when
+connecting to a live database (for install
+and fakeinstall).  PGDATABASE will be ignored:
+the name of the database should be given in Build.PL.
 
 =cut
 
@@ -97,8 +97,9 @@ sub _do_psql_into_file {
     my $self = shift;
     my $filename = shift;
     my $sql      = shift;
+    my $database_name  = $self->database_options('name');
     # -A: unaligned, -F: field separator, -t: tuples only, ON_ERROR_STOP: throw exceptions
-    _do_system( $Psql, "-q", "-v'ON_ERROR_STOP=1'", "-A", "-F '\t'", "-t", "-c", qq["$sql"], ">", "$filename" );
+    _do_system( $Psql, "-q", "-v'ON_ERROR_STOP=1'", "-A", "-F '\t'", "-t", "-c", qq["$sql"], $database_name, ">", "$filename" );
 }
 
 sub _cleanup_old_dbs {
@@ -148,7 +149,6 @@ sub _start_new_db {
 
     $self->_init_database();
 }
-
 
 sub _remove_db {
     my $self = shift;
@@ -220,7 +220,7 @@ sub _is_fresh_install {
     my $self = shift;
 
     my $database_name = $self->database_options('name');
-    unless (_database_exists($database_name)) {
+    unless ($self->_database_exists) {
         _info "database $database_name does not exist";
         return 1;
     }
@@ -232,23 +232,24 @@ sub _is_fresh_install {
 }
 
 sub _show_live_db {
-    # Display the database to which changes will be applied.
+    # Display the connection information
     my $self = shift;
 
-    _info "PGUSER     : " . ( $ENV{PGUSER}     || "<undef>" );
-    _info "PGHOST     : " . ( $ENV{PGHOST}     || "<undef>" );
-    _info "PGPORT     : " . ( $ENV{PGPORT}     || "<undef>" );
-    _info "PGDATABASE : " . ( $ENV{PGDATABASE} || "<undef>" );
+    _info "PGUSER : " . ( $ENV{PGUSER}     || "<undef>" );
+    _info "PGHOST : " . ( $ENV{PGHOST}     || "<undef>" );
+    _info "PGPORT : " . ( $ENV{PGPORT}     || "<undef>" );
 
+    my $database_name = shift || $self->database_options('name');
+    _info "database : $database_name";
+
+    return unless $self->_database_exists;
     $self->_do_psql_out("select current_database(),session_user,version();");
-
 }
 
 sub _patch_table_exists {
     # returns true or false
     my $self = shift;
     my $file = File::Temp->new(); $file->close;
-    $self->_do_psql_out("select tablename from pg_tables where tablename='patches_applied'");
     $self->_do_psql_into_file("$file","select tablename from pg_tables where tablename='patches_applied'");
     return _do_system("_silent","grep -q patches_applied $file");
 }
@@ -275,8 +276,9 @@ EOSQL
 }
 
 sub _database_exists {
-    my $dbname = shift;
-    _do_system("_silent","psql -Alt -F ':' | egrep -q '^$dbname:'");
+    my $self  =  shift;
+    my $database_name = shift || $self->database_options('name');
+    _do_system("_silent","psql -Alt -F ':' | egrep -q '^$database_name:'");
 }
 
 sub _init_database {
@@ -286,7 +288,7 @@ sub _init_database {
     my $database_schema = $self->database_options('schema');
 
     # create the database if necessary
-    unless (_database_exists($database_name)) {
+    unless ($self->_database_exists($database_name)) {
         _do_system($Createdb, $database_name) or die "could not createdb";
     }
 
