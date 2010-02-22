@@ -76,8 +76,11 @@ sub _do_psql {
     my $self = shift;
     my $sql = shift;
     my $database_name  = $self->database_options('name');
+    my $tmp = File::Temp->new();
+    print $tmp $sql;
+    $tmp->close;
     # -q: quiet, ON_ERROR_STOP: throw exceptions
-    _do_system( $Psql, "-q", "-v'ON_ERROR_STOP=1'", "-c", "'$sql'", $database_name );
+    _do_system( $Psql, "-q", "-v'ON_ERROR_STOP=1'", "-f", "$tmp", $database_name );
 }
 sub _do_psql_out {
     my $self = shift;
@@ -259,7 +262,7 @@ sub _dump_patch_table {
     # will be in the same format as patches_applied.txt.
     my $self = shift;
     my %args = @_;
-    my $filename = $args{outfile} or die "need a filename";
+    my $filename = $args{outfile} or Carp::confess "need a filename";
     $self->_do_psql_into_file($filename,"select patch_name,patch_md5 from patches_applied order by patch_name");
 }
 
@@ -273,6 +276,14 @@ sub _create_patch_table {
         when_applied timestamp );
 EOSQL
     $self->_do_psql($sql);
+}
+
+sub _insert_patch_record {
+    my $self = shift;
+    my $record = shift;
+    my ($name,$md5) = @$record;
+    $self->_do_psql("insert into patches_applied (patch_name, patch_md5, when_applied) ".
+             " values ('$name','$md5',now()) ");
 }
 
 sub _database_exists {

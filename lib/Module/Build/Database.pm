@@ -324,7 +324,7 @@ sub ACTION_dbfakeinstall {
     #    in the patches_applied table.
     # 4a. Determine list of patches to apply.
     my %done_patches = $self->_read_patches_applied_file(filename => "$patches_applied");
-    my %all_patches  = $self->_read_patches_applied_file;
+    my %all_patches  = $self->_read_patches_applied_file();
     my @todo = grep { !$done_patches{$_} } sort keys %all_patches;
     for my $patch (sort keys %done_patches) {
         next if "@{ $done_patches{$patch} }" eq "@{ $all_patches{$patch} }";
@@ -348,15 +348,32 @@ sub ACTION_dbinstall {
         $self->_init_database() or die "could not initialize database\n";
         $self->_apply_base_sql() or die "could not apply base sql\n";
     }
+
+    my %applied2base = $self->_read_patches_applied_file();
     unless ($self->_patch_table_exists()) {
+        # add records for all patches which have been applied to the base
         _info "Creating a new patch table";
         $self->_create_patch_table() or die "could not create patch table\n";
+        for my $patch (sort keys %applied2base) {
+            $self->_insert_patch_record($applied2base{$patch});
+        }
     }
-    #  1. Look for a running database, based on environment variables
+    #  1. Look for a running instance, based on environment variables
     #  2. Apply any patches in db/patches/ that are not in the patches_applied table.
     #  3. Add an entry to the patches_applied table for each patch applied.
 
-    die "not implemented";
+    my $outfile = File::Temp->new(); $outfile->close;
+    $self->_dump_patch_table(outfile => "$outfile");
+    my %applied2db = $self->_read_patches_applied_file(filename => "$outfile");
+    for my $patch (sort keys %applied2db) {
+        if (exists($applied2base{$patch})) {
+            next if "@{$applied2base{$patch}}" eq "@{$applied2db{$patch}}";
+            warn "patch $patch: @{$applied2base{$patch}} != @{$applied2db{$patch}}\n";
+            next;
+        }
+        $self->_apply_patch($patch) or die "error applying $patch";
+        $self->_insert_patch_record($applied2base{$patch});
+    }
 }
 
 1;
