@@ -11,7 +11,7 @@ my $builder = Module::Build::Database->new(
               postgis => { schema => "postgis" },
           },
           postgis_base => "/util/share/postgresql/contrib",
-          module_name => "Foo",
+          module_name => "Pgapp",
           license => "perl",
 );
 
