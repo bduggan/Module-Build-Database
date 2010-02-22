@@ -360,13 +360,16 @@ sub ACTION_dbfakeinstall {
 
     # 5a. Start a temporary database, apply the live schema.
     # 5b. Apply the pending patches to that one.
-    # 5c. Dump out the resulting schema.
-    # 5d. Compare that to base.sql.
+    # 5c. Remove the patches_applied table.
+    # 5d. Dump out the resulting schema.
+    # 5e. Compare that to base.sql.
 
     $tmp = File::Temp->new();$tmp->close;
     $self->_start_new_db();
-    $self->_apply_base_sql("$existing_schema") or die "error with existing schema";
+    $self->_apply_base_sql("$existing_schema") # NB: contains patches_applied table
+        or die "error with existing schema";
     $self->_apply_patch($_) for @todo;
+    $self->_remove_patches_applied_table();
     $self->_dump_base_sql(outfile => "$tmp");
     $self->_diff_files("$tmp", $self->base_dir. "/db/dist/base.sql") 
         or warn "Applying patches will not result in a schema identical to base.sql\n";

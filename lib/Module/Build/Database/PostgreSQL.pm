@@ -322,6 +322,10 @@ sub _init_database {
     }
 }
 
+sub _remove_patches_applied_table {
+    shift->_do_psql("drop table patches_applied;");
+}
+
 sub ACTION_dbtest        { shift->SUPER::ACTION_dbtest(@_);        }
 sub ACTION_dbclean       { shift->SUPER::ACTION_dbclean(@_);       }
 sub ACTION_dbdist        { shift->SUPER::ACTION_dbdist(@_);        }
