@@ -4,6 +4,14 @@ Module::Build::Database - Manage database patches in the style of Module::Build.
 
 =head1 SYNOPSIS
 
+ perl Build.PL
+ ./Build dbtest
+ ./Build dbdist
+ ./Build dbfakeinstall
+ ./Build dbinstall
+
+In more detail :
+
  # In Build.PL :
 
  use Module::Build::Database;
@@ -123,6 +131,9 @@ test databases that have been created.
     in the patches_applied table.
  6. Dump out the resulting schema, and compare it to db/dist/base.sql.
 
+Note that dbdist must be run to update base.sql before doing dbfakeinstall
+or dbinstall.
+
 =item dbinstall
 
  1. Look for a running database, based on environment variables
@@ -202,6 +213,12 @@ sub _read_patches_applied_file {
         $h{$info[0]} = \@info;
     }
     return %h;
+}
+
+sub _diff_files {
+    my $self = shift;
+    my ($one,$two) = @_;
+    return system("diff $one $two")==0;
 }
 
 sub ACTION_dbtest {
@@ -311,33 +328,39 @@ sub ACTION_dbfakeinstall {
     }
 
     # 4. Dump the patch table.
-    my $patches_applied = File::Temp->new();
-    $patches_applied->close;
+    my $tmp = File::Temp->new(); $tmp->close;
     if ($self->_patch_table_exists()) {
-        $self->_dump_patch_table(outfile => "$patches_applied");
+        $self->_dump_patch_table(outfile => "$tmp");
     } else {
-        _info "There is no patches_applied table, it will be created.";
-        unlink "$patches_applied" or die "error unlinking $patches_applied: $!";
+        _info "There is no tmp table, it will be created.";
+        unlink "$tmp" or die "error unlinking $tmp: $!";
     }
 
     # 4. Apply patches listed in db/dist/patches_applied.txt that are not
     #    in the patches_applied table.
     # 4a. Determine list of patches to apply.
-    my %done_patches = $self->_read_patches_applied_file(filename => "$patches_applied");
-    my %all_patches  = $self->_read_patches_applied_file();
-    my @todo = grep { !$done_patches{$_} } sort keys %all_patches;
-    for my $patch (sort keys %done_patches) {
-        next if "@{ $done_patches{$patch} }" eq "@{ $all_patches{$patch} }";
-        _info "WARNING: @{ $done_patches{$patch} } != @{ $all_patches{$patch} }";
+    my %db_patches = $self->_read_patches_applied_file(filename => "$tmp");
+    my %base_patches  = $self->_read_patches_applied_file();
+    my @todo = grep { !$db_patches{$_} } sort keys %base_patches;
+    for my $patch (sort keys %db_patches) {
+        next if "@{ $db_patches{$patch} }" eq "@{ $base_patches{$patch} }";
+        _info "WARNING: @{ $db_patches{$patch} } != @{ $base_patches{$patch} }";
     }
     for my $patch (@todo) {
         _info "Will apply patch $patch";
     }
 
-    # $self->_start_new_db();
-    die "not implemented, compare resulting schemas";
+    # 5a. Start a temporary database, apply the live schema.
+    # 5b. Apply the pending patches to that one.
+    # 5c. Dump out the resulting schema.
+    # 5d. Compare that to base.sql.
 
-    # 5. Dump out the resulting schema, and compare it to db/dist/base.sql.
+    $tmp = File::Temp->new();$tmp->close;
+    $self->_start_new_db();
+    $self->_apply_patch($_) for @todo;
+    $self->_dump_base_sql(outfile => "$tmp");
+    $self->_diff_files("$tmp", $self->base_dir. "/db/dist/base.sql") 
+        or warn "Applying patches will not result in a schema identical to base.sql\n";
 }
 
 sub ACTION_dbinstall {
@@ -349,13 +372,13 @@ sub ACTION_dbinstall {
         $self->_apply_base_sql() or die "could not apply base sql\n";
     }
 
-    my %applied2base = $self->_read_patches_applied_file();
+    my %base_patches = $self->_read_patches_applied_file();
     unless ($self->_patch_table_exists()) {
         # add records for all patches which have been applied to the base
         _info "Creating a new patch table";
         $self->_create_patch_table() or die "could not create patch table\n";
-        for my $patch (sort keys %applied2base) {
-            $self->_insert_patch_record($applied2base{$patch});
+        for my $patch (sort keys %base_patches) {
+            $self->_insert_patch_record($base_patches{$patch});
         }
     }
     #  1. Look for a running instance, based on environment variables
@@ -364,15 +387,16 @@ sub ACTION_dbinstall {
 
     my $outfile = File::Temp->new(); $outfile->close;
     $self->_dump_patch_table(outfile => "$outfile");
-    my %applied2db = $self->_read_patches_applied_file(filename => "$outfile");
-    for my $patch (sort keys %applied2db) {
-        if (exists($applied2base{$patch})) {
-            next if "@{$applied2base{$patch}}" eq "@{$applied2db{$patch}}";
-            warn "patch $patch: @{$applied2base{$patch}} != @{$applied2db{$patch}}\n";
+    my %db_patches = $self->_read_patches_applied_file(filename => "$outfile");
+    for my $patch (keys %base_patches) {
+        if (exists($db_patches{$patch})) {
+            next if "@{$base_patches{$patch}}" eq "@{$db_patches{$patch}}";
+            warn "patch $patch: @{$base_patches{$patch}} != @{$db_patches{$patch}}\n";
             next;
         }
+        warn "Applying $patch\n";
         $self->_apply_patch($patch) or die "error applying $patch";
-        $self->_insert_patch_record($applied2base{$patch});
+        $self->_insert_patch_record($base_patches{$patch});
     }
 }
 
