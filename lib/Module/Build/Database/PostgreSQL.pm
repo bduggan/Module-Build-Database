@@ -60,9 +60,9 @@ our $Pgdump     = 'pg_dump';
 sub _info($) { print STDERR shift(). "\n"; }
 sub _do_system {
     my $silent = ($_[0] eq '_silent' ? shift : 0);
-    if ($ENV{MBD_FAKE}) {
+    if ($ENV{MBD_FAKE} || $ENV{MBD_DEBUG}) {
         _info "fake: system call : @_";
-        return;
+        return if $ENV{MBD_FAKE};
     }
     #warn "doing------- @_\n";
     system("@_") == 0
@@ -185,13 +185,13 @@ sub _stop_db {
 
 sub _apply_base_sql {
     my $self = shift;
-
-    return unless -e $self->base_dir."/db/dist/base.sql";
-    $self->_do_psql_file($self->base_dir. "/db/dist/base.sql");
+    my $filename = shift || $self->base_dir."/db/dist/base.sql";
+    return unless -e $filename;
+    $self->_do_psql_file($filename);
 }
 
 sub _dump_base_sql {
-    # One optional parameter gives the name of the file into which to dump the schema.
+    # Optional parameter "outfile" gives the name of the file into which to dump the schema.
     # If the parameter is omitted, dump and atomically rename to db/dist/base.sql.
     my $self = shift;
     my %args = @_;
@@ -205,7 +205,8 @@ sub _dump_base_sql {
 
     # -x : no privileges, -O : no owner, -s : schema only, -n : only this schema
     my $database_schema = $self->database_options('schema');
-    _do_system( $Pgdump, "-xOs", "-n", $database_schema, "|",
+    my $database_name   = $self->database_options('name');
+    _do_system( $Pgdump, "-xOs", "-n", $database_schema, $database_name, "|",
         "egrep -v '^CREATE SCHEMA $database_schema;\$'",
         ">", "$tmpfile" )
       or return 0;

@@ -266,18 +266,26 @@ sub ACTION_dbclean {
 
 sub ACTION_dbdist {
     my $self = shift;
+    my $dbdist  = $self->base_dir . '/db/dist';
+
+    if (! -e "$dbdist/base.sql" && -e "$dbdist/patches_applied.txt") {
+        die "No base.sql : remove patches_applied.txt to apply all patches\n";
+    };
 
     # 1. Start a new empty database instance.
     $self->_start_new_db();
 
     # 2. Populate the schema using db/dist/base.sql.
-    _info "applying base.sql";
-    $self->_apply_base_sql();
+    # If there is no base.sql, we will create it from the patches.
+    if ($self->_apply_base_sql()) {
+        warn "updating base.sql\n";
+    } else {
+        warn "creating new base.sql\n";
+    }
 
     # 3. For every pending patch, apply, and add to patches_applied.txt.
     my %applied = $self->_read_patches_applied_file();
     my @todo    = $self->_find_patch_files( pending => 1 );
-    my $dbdist  = $self->base_dir . '/db/dist';
     -d $dbdist or mkpath $dbdist;
     my $patches_file = "$dbdist/patches_applied.txt";
     my $fp = IO::File->new(">>$patches_file") or die "error: $!";
@@ -357,6 +365,7 @@ sub ACTION_dbfakeinstall {
 
     $tmp = File::Temp->new();$tmp->close;
     $self->_start_new_db();
+    $self->_apply_base_sql("$existing_schema") or die "error with existing schema";
     $self->_apply_patch($_) for @todo;
     $self->_dump_base_sql(outfile => "$tmp");
     $self->_diff_files("$tmp", $self->base_dir. "/db/dist/base.sql") 
