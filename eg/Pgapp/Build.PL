@@ -12,6 +12,7 @@ my $builder = Module::Build::Database->new(
           },
           postgis_base => "/util/share/postgresql/contrib",
           module_name => "Pgapp",
+          dist_version => "0.1010101",
           license => "perl",
 );
 

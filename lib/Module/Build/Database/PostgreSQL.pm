@@ -58,6 +58,7 @@ our $Createdb   = 'createdb';
 our $Pgdump     = 'pg_dump';
 
 sub _info($) { print STDERR shift(). "\n"; }
+sub _debug($) { print STDERR shift(). "\n" if $ENV{MBD_DEBUG}; }
 sub _do_system {
     my $silent = ($_[0] eq '_silent' ? shift : 0);
     if ($ENV{MBD_FAKE} || $ENV{MBD_DEBUG}) {
@@ -112,7 +113,7 @@ sub _cleanup_old_dbs {
     $glob =~ s/mbdtest_.*$/mbdtest_*/;
     for my $thisdir (glob $glob) {
         next if $thisdir eq $tmpdir;
-        _info "cleaning up old tmp instance : $thisdir";
+        _debug "cleaning up old tmp instance : $thisdir";
         $self->_stop_db("$thisdir/db");
         rmtree($thisdir);
     }
@@ -136,7 +137,7 @@ sub _start_new_db {
     delete $ENV{PGUSER};
     delete $ENV{PGPORT};
 
-    _info "creating database (log: $initlog)";
+    _debug "creating database (log: $initlog)";
 
     _do_system($Initdb, "-D", "$dbdir", ">>", "$initlog", "2>&1") or die "could not initdb";
 
@@ -144,10 +145,13 @@ sub _start_new_db {
         or die "could not start postgres";
 
     my $pmlog = "$dbdir/postmaster.log";
+    my $i = 0;
+    # NB: This technique is from Test::Postgres, but maybe easier is "pg_ctl -w start"
     while (! -e "$pmlog" or not grep /ready/, IO::File->new("<$pmlog")->getlines ) {
-        _info "waiting for postgres to start..(log: $pmlog)";
+        _debug "waiting for postgres to start..(log: $pmlog)";
         sleep 1;
         last if $ENV{MBD_FAKE};
+        die "postgres did not start, see $pmlog" if ++$i > 30;
     }
 
     $self->_init_database();

@@ -351,6 +351,10 @@ sub ACTION_dbfakeinstall {
     my %base_patches  = $self->_read_patches_applied_file();
     my @todo = grep { !$db_patches{$_} } sort keys %base_patches;
     for my $patch (sort keys %db_patches) {
+        unless (exists $base_patches{$patch}) {
+            _info "WARNING: patch $patch in db is not in patches_applied.txt";
+            next;
+        }
         next if "@{ $db_patches{$patch} }" eq "@{ $base_patches{$patch} }";
         _info "WARNING: @{ $db_patches{$patch} } != @{ $base_patches{$patch} }";
     }
