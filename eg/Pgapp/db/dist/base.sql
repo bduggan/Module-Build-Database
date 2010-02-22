@@ -22,53 +22,43 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
--- Name: one; Type: TABLE; Schema: doo; Owner: -; Tablespace: 
+-- Name: number_four; Type: TABLE; Schema: doo; Owner: -; Tablespace: 
 --
 
-CREATE TABLE one (
-    x integer
+CREATE TABLE number_four (
+    x integer,
+    y integer,
+    z integer,
+    t integer
 );
 
 
 --
--- Name: three; Type: TABLE; Schema: doo; Owner: -; Tablespace: 
+-- Name: TABLE number_four; Type: COMMENT; Schema: doo; Owner: -
 --
 
-CREATE TABLE three (
-    foo integer,
-    bar integer,
-    baz character varying
-);
+COMMENT ON TABLE number_four IS 'this is table four';
 
 
 --
--- Name: TABLE three; Type: COMMENT; Schema: doo; Owner: -
+-- Name: COLUMN number_four.x; Type: COMMENT; Schema: doo; Owner: -
 --
 
-COMMENT ON TABLE three IS 'this is the THREE table';
-
-
---
--- Name: COLUMN three.bar; Type: COMMENT; Schema: doo; Owner: -
---
-
-COMMENT ON COLUMN three.bar IS 'this is the three.bar field';
+COMMENT ON COLUMN number_four.x IS 'this is the x coordinate';
 
 
 --
--- Name: COLUMN three.baz; Type: COMMENT; Schema: doo; Owner: -
+-- Name: COLUMN number_four.y; Type: COMMENT; Schema: doo; Owner: -
 --
 
-COMMENT ON COLUMN three.baz IS 'this is the bas field';
+COMMENT ON COLUMN number_four.y IS 'this is the y coordinate';
 
 
 --
--- Name: two; Type: TABLE; Schema: doo; Owner: -; Tablespace: 
+-- Name: COLUMN number_four.t; Type: COMMENT; Schema: doo; Owner: -
 --
 
-CREATE TABLE two (
-    y character varying(20)
-);
+COMMENT ON COLUMN number_four.t IS 'this is time!';
 
 
 --

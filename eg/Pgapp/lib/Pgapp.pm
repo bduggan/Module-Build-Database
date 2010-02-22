@@ -1,4 +1,4 @@
-package PgApp;
+package Pgapp;
 
 # dummy app that uses postgres to test Module::Build::Database
 
