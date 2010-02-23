@@ -42,7 +42,7 @@ use Module::Build::Database::PostgreSQL::Templates;
 use File::Temp qw/tempdir/;
 use File::Path qw/rmtree/;
 use File::Basename qw/dirname/;
-use File::Copy::Recursive qw/dirmove/;
+use File::Copy::Recursive qw/fcopy dirmove/;
 use IO::File;
 use strict;
 use warnings;
@@ -361,6 +361,7 @@ sub _generate_docs {
     # http://perlmonks.org/?node_id=821413
     _do_system( $Pgdoc, "-d", $database_name, "-s", $database_schema, "-l .", "-t pod" );
     _do_system( $Pgdoc, "-d", $database_name, "-s", $database_schema, "-l .", "-t html" );
+    _do_system( $Pgdoc, "-d", $database_name, "-s", $database_schema, "-l .", "-t dot" );
 
     for my $type qw(pod html) {
         my $fp = IO::File->new("<$database_name.$type") or die $!;
@@ -376,6 +377,8 @@ sub _generate_docs {
     _info "Generated $dir/pod";
     dirmove "$tmpdir/html", "$dir/html";
     _info "Generated $dir/html";
+    fcopy "$tmpdir/$database_name.dot", "$dir";
+    _info "Generated $dir/$database_name.dot";
 }
 
 sub ACTION_dbtest        { shift->SUPER::ACTION_dbtest(@_);        }

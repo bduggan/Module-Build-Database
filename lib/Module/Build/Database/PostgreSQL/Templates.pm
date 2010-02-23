@@ -11,7 +11,7 @@ Templates used to generate documentation for a postgres database.
 package Module::Build::Database::PostgreSQL::Templates;
 
 sub filenames {
-    return qw/header.tmpl footer.tmpl html.tmpl pod.tmpl/;
+    return qw/header.tmpl footer.tmpl html.tmpl pod.tmpl dot.tmpl/;
 }
 
 sub file_contents {
@@ -21,7 +21,7 @@ sub file_contents {
     return $contents{$filename};
 }
 
-our %contents = ( "footer.tmpl" => <<'END_FOOTER', "header.tmpl" =><< 'END_HEADER', "html.tmpl" =><<'END_HTML', "pod.tmpl" =><< 'END_POD' );
+our %contents = ( "footer.tmpl" => <<'END_FOOTER', "header.tmpl" =><< 'END_HEADER', "html.tmpl" =><<'END_HTML', "pod.tmpl" =><< 'END_POD', "dot.tmpl" =><< 'END_DOT' );
 
 </body></html>
 END_FOOTER
@@ -350,3 +350,26 @@ _DB: \d+ <tmpl_var table>
 
 
 END_POD
+
+digraph g {
+graph [
+rankdir = "LR",
+concentrate = true,
+ratio = auto
+];
+node [
+fontsize = "10",
+shape = record
+];
+edge [
+];
+<TMPL_LOOP name="schemas"><TMPL_LOOP name="tables"><TMPL_UNLESS name="view_definition">
+"<TMPL_IF name="number_of_schemas"><TMPL_VAR name="schema_dot">.</TMPL_IF name="number_of_schemas"><TMPL_VAR name="table_dot">" [shape = plaintext, label = < <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0"> <TR ><TD PORT="ltcol0"> </TD> <TD bgcolor="grey90" border="1" COLSPAN="4"> \N </TD> <TD PORT="rtcol0"></TD></TR> <TMPL_LOOP name="columns"> <TR><TD PORT="ltcol<TMPL_VAR name="column_number">" ></TD><TD align="left" > <TMPL_VAR name="column_dot"> </TD><TD align="left" > <TMPL_VAR name="column_type"> </TD><TD align="left" > <TMPL_LOOP name="column_constraints"><TMPL_IF NAME="column_primary_key">PK</TMPL_IF NAME="column_primary_key"></TMPL_LOOP name="column_constraints"> </TD><TD align="left" > <TMPL_LOOP name="column_constraints"><TMPL_IF NAME="column_fk"><TMPL_IF NAME="__first__">FK</TMPL_IF NAME="__first__"></TMPL_IF NAME="column_fk"></TMPL_LOOP name="column_constraints"> </TD><TD align="left" PORT="rtcol<TMPL_VAR name="column_number">"> </TD></TR></TMPL_LOOP name="columns"> </TABLE>> ];
+</TMPL_UNLESS name="view_definition"></TMPL_LOOP name="tables"></TMPL_LOOP name="schemas">
+
+<TMPL_LOOP name="fk_links">
+"<TMPL_IF name="number_of_schemas"><TMPL_VAR name="handle0_schema">.</TMPL_IF name="number_of_schemas"><TMPL_VAR name="handle0_name">":rtcol<TMPL_VAR name="handle0_connection"> -> "<TMPL_IF name="number_of_schemas"><TMPL_VAR name="handle1_schema">.</TMPL_IF name="number_of_schemas"><TMPL_VAR name="handle1_name">":ltcol<TMPL_VAR name="handle1_connection"> [label="<TMPL_VAR name="fk_link_name_dot">"];</TMPL_LOOP name="fk_links">
+}
+
+END_DOT
+
