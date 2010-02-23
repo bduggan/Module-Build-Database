@@ -9,6 +9,7 @@ my $builder = Module::Build->new(
     dist_version_from   => 'lib/Module/Build/Database.pm',
     build_requires => {
         'Test::More' => 0,
+        'File::Copy::Recursive' => 0,
     },
     add_to_cleanup      => [ 'Module-Build-Database-*' ],
     create_makefile_pl => 'traditional',

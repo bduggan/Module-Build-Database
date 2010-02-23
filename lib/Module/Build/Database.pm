@@ -314,7 +314,9 @@ sub ACTION_dbdist {
 sub ACTION_dbdocs {
     my $self = shift;
 
-    die "not implemented";
+    my $docdir = $self->base_dir."/db/dist/docs";
+    mkpath $docdir;
+    $self->_generate_docs(dir => $docdir);
 }
 
 sub ACTION_dbfakeinstall {

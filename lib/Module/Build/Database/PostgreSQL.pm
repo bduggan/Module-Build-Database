@@ -38,9 +38,11 @@ the name of the database should be given in Build.PL.
 
 package Module::Build::Database::PostgreSQL;
 use base 'Module::Build::Database';
+use Module::Build::Database::PostgreSQL::Templates;
 use File::Temp qw/tempdir/;
 use File::Path qw/rmtree/;
 use File::Basename qw/dirname/;
+use File::Copy::Recursive qw/dirmove/;
 use IO::File;
 use strict;
 use warnings;
@@ -56,6 +58,7 @@ our $Postgres   = 'postgres';
 our $Initdb     = 'initdb';
 our $Createdb   = 'createdb';
 our $Pgdump     = 'pg_dump';
+our $Pgdoc      = 'pg_autodoc';
 
 sub _info($) { print STDERR shift(). "\n"; }
 sub _debug($) { print STDERR shift(). "\n" if $ENV{MBD_DEBUG}; }
@@ -104,6 +107,12 @@ sub _do_psql_into_file {
     my $database_name  = $self->database_options('name');
     # -A: unaligned, -F: field separator, -t: tuples only, ON_ERROR_STOP: throw exceptions
     _do_system( $Psql, "-q", "-v'ON_ERROR_STOP=1'", "-A", "-F '\t'", "-t", "-c", qq["$sql"], $database_name, ">", "$filename" );
+}
+sub _do_psql_capture {
+    my $self = shift;
+    my $sql = shift;
+    my $database_name  = $self->database_options('name');
+    return qx[$Psql -c "$sql" $database_name];
 }
 
 sub _cleanup_old_dbs {
@@ -328,6 +337,45 @@ sub _init_database {
 
 sub _remove_patches_applied_table {
     shift->_do_psql("drop table patches_applied;");
+}
+
+sub _generate_docs {
+    my $self            = shift;
+    my %args            = @_;
+    my $dir             = $args{dir} or die "missing dir";
+    my $tmpdir          = tempdir;
+    my $tc              = "Module::Build::Database::PostgreSQL::Templates";
+    my $database_name   = $self->database_options('name');
+    my $database_schema = $self->database_options('schema');
+
+    $self->_start_new_db();
+    $self->_apply_base_sql();
+
+    chdir $tmpdir;
+    for my $filename ($tc->filenames) {
+        open my $fp, ">$filename" or die $!;
+        print ${fp} $tc->file_contents($filename);
+        close $fp;
+    }
+
+    # http://perlmonks.org/?node_id=821413
+    _do_system( $Pgdoc, "-d", $database_name, "-s", $database_schema, "-l .", "-t pod" );
+    _do_system( $Pgdoc, "-d", $database_name, "-s", $database_schema, "-l .", "-t html" );
+
+    for my $type qw(pod html) {
+        my $fp = IO::File->new("<$database_name.$type") or die $!;
+        mkdir $type or die $!;
+        my $outfp;
+        while (<$fp>) {
+            s/^_CUT: (.*)$// and do { $outfp = IO::File->new(">$type/$1") or die $!; };
+            s/^_DB: (.*)$//  and do { $_ = $self->_do_psql_capture($1);   s/^/ /gm;  };
+            print ${outfp} $_ if defined($outfp);
+        }
+    }
+    dirmove "$tmpdir/pod", "$dir/pod";
+    _info "Generated $dir/pod";
+    dirmove "$tmpdir/html", "$dir/html";
+    _info "Generated $dir/html";
 }
 
 sub ACTION_dbtest        { shift->SUPER::ACTION_dbtest(@_);        }
