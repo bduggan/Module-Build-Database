@@ -261,7 +261,7 @@ sub ACTION_dbtest {
 
 sub ACTION_dbclean {
     # Remove any test databases created, stop any daemons.
-    die "NOT IMPLEMENTED";
+    shift->_cleanup_old_dbs();
 }
 
 sub ACTION_dbdist {
