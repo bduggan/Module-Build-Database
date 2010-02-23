@@ -22,6 +22,29 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
+-- Name: five; Type: TABLE; Schema: doo; Owner: -; Tablespace: 
+--
+
+CREATE TABLE five (
+    five_col integer
+);
+
+
+--
+-- Name: TABLE five; Type: COMMENT; Schema: doo; Owner: -
+--
+
+COMMENT ON TABLE five IS '2+3=5';
+
+
+--
+-- Name: COLUMN five.five_col; Type: COMMENT; Schema: doo; Owner: -
+--
+
+COMMENT ON COLUMN five.five_col IS 'this is a column for fives';
+
+
+--
 -- Name: number_four; Type: TABLE; Schema: doo; Owner: -; Tablespace: 
 --
 
