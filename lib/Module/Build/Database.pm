@@ -342,7 +342,7 @@ sub ACTION_dbfakeinstall {
     if ($self->_patch_table_exists()) {
         $self->_dump_patch_table(outfile => "$tmp");
     } else {
-        _info "There is no tmp table, it will be created.";
+        _info "There is no patch table, it will be created.";
         unlink "$tmp" or die "error unlinking $tmp: $!";
     }
 
@@ -385,7 +385,7 @@ sub ACTION_dbinstall {
     my $self = shift;
 
     if ($self->_is_fresh_install()) {
-        _info "Fresh install; applying base.sql";
+        _info "Fresh install.";
         $self->_init_database() or die "could not initialize database\n";
         $self->_apply_base_sql() or die "could not apply base sql\n";
     }

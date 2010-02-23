@@ -68,7 +68,7 @@ sub _do_system {
         _info "fake: system call : @_";
         return if $ENV{MBD_FAKE};
     }
-    #warn "doing------- @_\n";
+    #Carp::cluck("doing------- @_\n");
     system("@_") == 0
       or do {
         warn "Error with '@_' : $? " . ( ${^CHILD_ERROR_NATIVE} || '' ) . "\n" unless $silent;
@@ -336,7 +336,7 @@ sub _init_database {
 }
 
 sub _remove_patches_applied_table {
-    shift->_do_psql("drop table patches_applied;");
+    shift->_do_psql("drop table if exists patches_applied;");
 }
 
 sub _generate_docs {
