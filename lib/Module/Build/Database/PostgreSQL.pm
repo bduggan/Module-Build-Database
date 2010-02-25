@@ -51,6 +51,7 @@ __PACKAGE__->add_property(database_options    => default => { name => "foo", sch
 __PACKAGE__->add_property(database_extensions => default => { postgis => 0 } );
 __PACKAGE__->add_property(postgis_base        => default => "/usr/local/share/postgis" );
 __PACKAGE__->add_property(_tmp_db_dir         => default => "" );
+__PACKAGE__->add_property(leave_running       => default => 0 ); # leave running after dbtest?
 
 # Binaries used by this module.  They should be in $ENV{PATH}.
 our $Psql       = 'psql';
@@ -60,7 +61,7 @@ our $Createdb   = 'createdb';
 our $Pgdump     = 'pg_dump';
 our $Pgdoc      = 'pg_autodoc';
 
-sub _info($) { print STDERR shift(). "\n"; }
+sub _info($) { print STDERR shift(). "\n" unless $ENV{MBD_QUIET}; }
 sub _debug($) { print STDERR shift(). "\n" if $ENV{MBD_DEBUG}; }
 sub _do_system {
     my $silent = ($_[0] eq '_silent' ? shift : 0);
@@ -117,11 +118,13 @@ sub _do_psql_capture {
 
 sub _cleanup_old_dbs {
     my $self = shift;
+    my %args = @_; # pass all => 1 to clean up the current one too
+
     my $tmpdir = tempdir("mbdtest_XXXXXX", TMPDIR => 1);
     my $glob = $tmpdir;
     $glob =~ s/mbdtest_.*$/mbdtest_*/;
     for my $thisdir (glob $glob) {
-        next if $thisdir eq $tmpdir;
+        next if $thisdir eq $tmpdir && !$args{all};
         _debug "cleaning up old tmp instance : $thisdir";
         $self->_stop_db("$thisdir/db");
         rmtree($thisdir);
@@ -387,6 +390,10 @@ sub ACTION_dbdist        { shift->SUPER::ACTION_dbdist(@_);        }
 sub ACTION_dbdocs        { shift->SUPER::ACTION_dbdocs(@_);        }
 sub ACTION_dbinstall     { shift->SUPER::ACTION_dbinstall(@_);     }
 sub ACTION_dbfakeinstall { shift->SUPER::ACTION_dbfakeinstall(@_); }
+
+sub _dbhost {
+    return $ENV{PGHOST};
+}
 
 1;
 

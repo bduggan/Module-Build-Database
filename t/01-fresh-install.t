@@ -39,6 +39,7 @@ ok -e "$dir/db/dist/patches_applied.txt", "created patches_applied.txt";
 my $tmpdir = tempdir(CLEANUP => 0);
 my $dbdir  = "$tmpdir/dbtest";
 
+$ENV{PGPORT} = 9999; # TODO should look for an open port
 $ENV{PGHOST} = "$dbdir";
 $ENV{PGDATA} = "$dbdir";
 $ENV{PGDATABASE} = "scooby";

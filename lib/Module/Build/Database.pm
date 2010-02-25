@@ -109,6 +109,9 @@ In other words :
     patches do not apply cleanly.
  4. Shut down the database instance.
 
+If --leave_running=1 is passed, step 4 will not be executed,
+and the host will be printed to the file _build/dbtest_host.
+
 =item dbclean
 
 Stop any test daemons that are running and remove any
@@ -167,7 +170,7 @@ use base 'Module::Build';
 
 our $VERSION = 0.01;
 
-sub _info($) { print STDERR shift(). "\n"; }
+sub _info($) { print STDERR shift(). "\n" unless $ENV{MBD_QUIET}; }
 
 sub new {
     my $class = shift;
@@ -223,6 +226,7 @@ sub _diff_files {
 
 sub ACTION_dbtest {
     my $self = shift;
+    my $dbtest_host_file = $self->base_dir."/_build/dbtest_host";
 
     # 1. Start a new empty database instance.
     $self->_start_new_db();
@@ -252,16 +256,30 @@ sub ACTION_dbtest {
         $i++;
     }
 
+    if ($self->runtime_params("leave_running")) {
+        my $fp = IO::File->new(">$dbtest_host_file")
+          or die "open $dbtest_host_file failed : $!";
+        print $fp $self->_dbhost()."\n";
+        $fp->close or die $!;
+        return 1;
+    }
+
     # 4. Shut down the database instance.
     $self->_stop_db();
 
     # and remove it
     $self->_remove_db();
+
+    return $passes=@todo;
 }
 
 sub ACTION_dbclean {
+    my $self = shift;
+
     # Remove any test databases created, stop any daemons.
-    shift->_cleanup_old_dbs();
+    $self->_cleanup_old_dbs(all => 1);
+    my $dbtest_host_file = $self->base_dir."/_build/dbtest_host";
+    -e $dbtest_host_file and do { unlink $dbtest_host_file or die $!; };
 }
 
 sub ACTION_dbdist {
