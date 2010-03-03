@@ -2,7 +2,7 @@
 use ExtUtils::MakeMaker;
 WriteMakefile
 (
-          'NAME' => 'Module::Build::Database::PostgreSQL',
+          'NAME' => 'Module::Build::Database',
           'VERSION_FROM' => 'lib/Module/Build/Database.pm',
           'PREREQ_PM' => {
                            'File::Copy::Recursive' => 0,

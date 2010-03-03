@@ -1,5 +1,5 @@
 ---
-name: Module-Build-Database-PostgreSQL
+name: Module-Build-Database
 version: 0.01
 author:
   - 'Brian Duggan <brian.duggan@nasa.gov>'

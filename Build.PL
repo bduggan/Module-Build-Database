@@ -3,7 +3,7 @@ use warnings;
 use Module::Build;
 
 my $builder = Module::Build->new(
-    module_name         => 'Module::Build::Database::PostgreSQL',
+    module_name         => 'Module::Build::Database',
     license             => 'perl',
     dist_author         => q{Brian Duggan <brian.duggan@nasa.gov>},
     dist_version_from   => 'lib/Module/Build/Database.pm',
