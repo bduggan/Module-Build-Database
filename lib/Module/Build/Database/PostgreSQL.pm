@@ -24,7 +24,7 @@ my $builder = Module::Build::Database->new(
 
 =head1 DESCRIPTION
 
-Postgres driver for Module::Build::Database.
+$Bin{Postgres} driver for Module::Build::Database.
 
 =head1 NOTES
 
@@ -54,17 +54,25 @@ __PACKAGE__->add_property(_tmp_db_dir         => default => "" );
 __PACKAGE__->add_property(leave_running       => default => 0 ); # leave running after dbtest?
 
 # Binaries used by this module.  They should be in $ENV{PATH}.
-our $Psql       = 'psql';
-our $Postgres   = 'postgres';
-our $Initdb     = 'initdb';
-our $Createdb   = 'createdb';
-our $Pgdump     = 'pg_dump';
-our $Pgdoc      = 'pg_autodoc';
+our %Bin = (
+    Psql       => 'psql',
+    Postgres   => 'postgres',
+    Initdb     => 'initdb',
+    Createdb   => 'createdb',
+    Pgdump     => 'pg_dump',
+    Pgdoc      => 'pg_autodoc',
+);
 
 sub _info($) { print STDERR shift(). "\n" unless $ENV{MBD_QUIET}; }
 sub _debug($) { print STDERR shift(). "\n" if $ENV{MBD_DEBUG}; }
 sub _do_system {
+    our %BinR = reverse %Bin;
+    our %BinV; # verify that binaries exist.
     my $silent = ($_[0] eq '_silent' ? shift : 0);
+    my $cmd = $_[0];
+    if (exists($BinR{$cmd}) && !$BinV{$cmd}) {
+        $BinV{$cmd} = qx[which $cmd] or die "could not find $cmd";
+    }
     if ($ENV{MBD_FAKE} || $ENV{MBD_DEBUG}) {
         _info "fake: system call : @_";
         return if $ENV{MBD_FAKE};
@@ -85,21 +93,21 @@ sub _do_psql {
     print $tmp $sql;
     $tmp->close;
     # -q: quiet, ON_ERROR_STOP: throw exceptions
-    _do_system( $Psql, "-q", "-v'ON_ERROR_STOP=1'", "-f", "$tmp", $database_name );
+    _do_system( $Bin{Psql}, "-q", "-v'ON_ERROR_STOP=1'", "-f", "$tmp", $database_name );
 }
 sub _do_psql_out {
     my $self = shift;
     my $sql = shift;
     my $database_name  = $self->database_options('name');
     # -F field separator, -x extended output, -A: unaligned
-    _do_system( $Psql, "-q", "-v'ON_ERROR_STOP=1'", "-A", "-F ' : '", "-x", "-c", qq["$sql"], $database_name );
+    _do_system( $Bin{Psql}, "-q", "-v'ON_ERROR_STOP=1'", "-A", "-F ' : '", "-x", "-c", qq["$sql"], $database_name );
 }
 sub _do_psql_file {
     my $self = shift;
     my $filename = shift;
     my $database_name  = $self->database_options('name');
     # -q: quiet, ON_ERROR_STOP: throw exceptions
-    _do_system($Psql,"-q","-v'ON_ERROR_STOP=1'","-f",$filename, $database_name);
+    _do_system($Bin{Psql},"-q","-v'ON_ERROR_STOP=1'","-f",$filename, $database_name);
 }
 sub _do_psql_into_file {
     my $self = shift;
@@ -107,13 +115,13 @@ sub _do_psql_into_file {
     my $sql      = shift;
     my $database_name  = $self->database_options('name');
     # -A: unaligned, -F: field separator, -t: tuples only, ON_ERROR_STOP: throw exceptions
-    _do_system( $Psql, "-q", "-v'ON_ERROR_STOP=1'", "-A", "-F '\t'", "-t", "-c", qq["$sql"], $database_name, ">", "$filename" );
+    _do_system( $Bin{Psql}, "-q", "-v'ON_ERROR_STOP=1'", "-A", "-F '\t'", "-t", "-c", qq["$sql"], $database_name, ">", "$filename" );
 }
 sub _do_psql_capture {
     my $self = shift;
     my $sql = shift;
     my $database_name  = $self->database_options('name');
-    return qx[$Psql -c "$sql" $database_name];
+    return qx[$Bin{Psql} -c "$sql" $database_name];
 }
 
 sub _cleanup_old_dbs {
@@ -151,14 +159,14 @@ sub _start_new_db {
 
     _debug "creating database (log: $initlog)";
 
-    _do_system($Initdb, "-D", "$dbdir", ">>", "$initlog", "2>&1") or die "could not initdb";
+    _do_system($Bin{Initdb}, "-D", "$dbdir", ">>", "$initlog", "2>&1") or die "could not initdb";
 
-    _do_system($Postgres, "-D", "$dbdir", "-k", "$dbdir", "-h ''", "-c silent_mode=on")
+    _do_system($Bin{Postgres}, "-D", "$dbdir", "-k", "$dbdir", "-h ''", "-c silent_mode=on")
         or die "could not start postgres";
 
     my $pmlog = "$dbdir/postmaster.log";
     my $i = 0;
-    # NB: This technique is from Test::Postgres, but maybe easier is "pg_ctl -w start"
+    # NB: This technique is from Test::$Bin{Postgres}, but maybe easier is "pg_ctl -w start"
     while (! -e "$pmlog" or not grep /ready/, IO::File->new("<$pmlog")->getlines ) {
         _debug "waiting for postgres to start..(log: $pmlog)";
         sleep 1;
@@ -222,7 +230,7 @@ sub _dump_base_sql {
     # -x : no privileges, -O : no owner, -s : schema only, -n : only this schema
     my $database_schema = $self->database_options('schema');
     my $database_name   = $self->database_options('name');
-    _do_system( $Pgdump, "-xOs", "-n", $database_schema, $database_name, "|",
+    _do_system( $Bin{Pgdump}, "-xOs", "-n", $database_schema, $database_name, "|",
         "egrep -v '^CREATE SCHEMA $database_schema;\$'",
         ">", "$tmpfile" )
       or return 0;
@@ -317,7 +325,7 @@ sub _init_database {
 
     # create the database if necessary
     unless ($self->_database_exists($database_name)) {
-        _do_system($Createdb, $database_name) or die "could not createdb";
+        _do_system($Bin{Createdb}, $database_name) or die "could not createdb";
     }
 
     # Create a fresh schema in the database.
@@ -362,9 +370,9 @@ sub _generate_docs {
     }
 
     # http://perlmonks.org/?node_id=821413
-    _do_system( $Pgdoc, "-d", $database_name, "-s", $database_schema, "-l .", "-t pod" );
-    _do_system( $Pgdoc, "-d", $database_name, "-s", $database_schema, "-l .", "-t html" );
-    _do_system( $Pgdoc, "-d", $database_name, "-s", $database_schema, "-l .", "-t dot" );
+    _do_system( $Bin{Pgdoc}, "-d", $database_name, "-s", $database_schema, "-l .", "-t pod" );
+    _do_system( $Bin{Pgdoc}, "-d", $database_name, "-s", $database_schema, "-l .", "-t html" );
+    _do_system( $Bin{Pgdoc}, "-d", $database_name, "-s", $database_schema, "-l .", "-t dot" );
 
     for my $type qw(pod html) {
         my $fp = IO::File->new("<$database_name.$type") or die $!;

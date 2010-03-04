@@ -11,7 +11,7 @@ sub _sysok {
     my $log = File::Temp->new();  $log->close;
     ok system($cmd . " > $log 2>&1")==0, "$cmd" or do {
         copy "$log", "$log.$$" or die "copy failed: $!";
-        diag "$cmd failed : $? ".(${^CHILD_ERROR_NATIVE} || '')." see $log";
+        diag "$cmd failed : $? ".(${^CHILD_ERROR_NATIVE} || '')." see $log.$$";
     };
 }
 
