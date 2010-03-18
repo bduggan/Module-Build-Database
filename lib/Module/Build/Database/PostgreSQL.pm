@@ -333,6 +333,8 @@ sub _init_database {
 
     $self->_do_psql("alter database $database_name set client_min_messages to ERROR");
 
+    $self->_do_psql("alter database $database_name set search_path to $database_schema;");
+
     if (my $postgis = $self->database_extensions('postgis')) {
         _info "applying postgis extension";
         my $postgis_schema = $postgis->{schema} or die "No schema given for postgis";
@@ -344,6 +346,7 @@ sub _init_database {
         $self->_do_psql_file($self->postgis_base. "/spatial_ref_sys.sql") or die "could not do spatial_ref_sys.sql";
         $self->_do_psql("alter database $database_name set search_path to $database_schema, $postgis_schema");
     }
+    1;
 }
 
 sub _remove_patches_applied_table {

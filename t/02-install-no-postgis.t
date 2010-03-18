@@ -4,7 +4,10 @@ use Test::More qw/no_plan/;
 use File::Temp qw/tempdir/;
 use File::Path qw/mkpath/;
 use File::Copy qw/copy/;
+use IO::Socket::INET;
 use FindBin;
+
+my $debug = 0;
 
 sub _sysok {
     my $cmd = shift;
@@ -15,8 +18,8 @@ sub _sysok {
     };
 }
 
-my $dir = tempdir( CLEANUP => 1);
-my $src_dir = "$FindBin::Bin/../eg/Pgapp";
+my $dir = tempdir( CLEANUP => !$debug);
+my $src_dir = "$FindBin::Bin/../eg/PgappNoPostgis";
 mkpath "$dir/db/patches";
 copy "$src_dir/Build.PL", $dir;
 copy "$src_dir/db/patches/0010_one.sql","$dir/db/patches";
@@ -39,7 +42,20 @@ ok -e "$dir/db/dist/patches_applied.txt", "created patches_applied.txt";
 my $tmpdir = tempdir(CLEANUP => 0);
 my $dbdir  = "$tmpdir/dbtest";
 
-$ENV{PGPORT} = 9999; # TODO should look for an open port
+# find a free port
+my $port = 9999;
+
+while ($port < 10100 and
+       !IO::Socket::INET->new(Listen    => 5,
+                 LocalAddr => 'localhost',
+                 LocalPort => $port,
+                 Proto     => 'tcp') ) {
+    $port ++
+}
+
+diag "using local port $port";
+
+$ENV{PGPORT} = $port;
 $ENV{PGHOST} = "$dbdir";
 $ENV{PGDATA} = "$dbdir";
 $ENV{PGDATABASE} = "scooby";
@@ -61,7 +77,7 @@ my $out = `psql -c "\\d one"`;
 like $out, qr/table.*doo\.one/i, "made table one in schema doo";
 like $out, qr/x.*integer/, "made column x type integer";
 
-_sysok("pg_ctl -D $dbdir stop");
+_sysok("pg_ctl -D $dbdir stop") unless $debug;
 
 1;
 
