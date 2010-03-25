@@ -404,7 +404,7 @@ sub ACTION_dbinstall {
 
     if ($self->_is_fresh_install()) {
         _info "Fresh install.";
-        $self->_init_database() or die "could not initialize database\n";
+        $self->_create_database() or die "could not create database\n";
         $self->_apply_base_sql() or die "could not apply base sql\n";
     }
 

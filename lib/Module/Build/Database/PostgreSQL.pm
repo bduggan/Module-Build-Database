@@ -157,7 +157,7 @@ sub _start_new_db {
     delete $ENV{PGUSER};
     delete $ENV{PGPORT};
 
-    _debug "creating database (log: $initlog)";
+    _debug "initializing database (log: $initlog)";
 
     _do_system($Bin{Initdb}, "-D", "$dbdir", ">>", "$initlog", "2>&1") or die "could not initdb";
 
@@ -174,7 +174,7 @@ sub _start_new_db {
         die "postgres did not start, see $pmlog" if ++$i > 30;
     }
 
-    $self->_init_database();
+    $self->_create_database();
 }
 
 sub _remove_db {
@@ -317,7 +317,7 @@ sub _database_exists {
     _do_system("_silent","psql -Alt -F ':' | egrep -q '^$database_name:'");
 }
 
-sub _init_database {
+sub _create_database {
     my $self = shift;
 
     my $database_name   = $self->database_options('name');
