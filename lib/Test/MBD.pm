@@ -5,8 +5,6 @@ use warnings;
 
 use File::Slurp 'slurp';
 
-use Data::Dumper;
-
 sub import
 {
     my $look_for = '_build/dbtest_host';
