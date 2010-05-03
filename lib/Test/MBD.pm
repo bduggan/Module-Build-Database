@@ -7,6 +7,16 @@ use File::Slurp 'slurp';
 
 sub import
 {
+    my $class = shift;
+
+    foreach my $arg (@_)
+    {
+        start() if $arg eq '-autostart';
+    }
+}
+
+sub start
+{
     my $look_for = '_build/dbtest_host';
 
     unless (-r $look_for)
@@ -23,6 +33,7 @@ sub import
 
 sub stop
 {
+    warn "# stopping and cleaning test database\n";
     $ENV{MBD_QUIET} = 1;
     system("./Build dbclean") == 0;
 }
@@ -37,8 +48,9 @@ Test::MBD - Helper for testing Module::Build::Database apps
 
 =head1 SYNOPSIS
 
- use Test::MBD;    # Starts a test database if not already up
+ use Test::MBD '-autostart';  # Pass in autostart to auto start
 
+ Test::MBD::start; # Starts a test database if not already up
  Test::MBD::stop;  # Stop and clean up the test database
 
 =head1 DESCRIPTION
