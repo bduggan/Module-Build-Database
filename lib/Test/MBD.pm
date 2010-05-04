@@ -50,18 +50,21 @@ Test::MBD - Helper for testing Module::Build::Database apps
 
  use Test::MBD '-autostart';  # Pass in autostart to auto start
 
- Test::MBD::start; # Starts a test database if not already up
- Test::MBD::stop;  # Stop and clean up the test database
+ Test::MBD->start; # Starts a test database if not already up
+ Test::MBD->stop;  # Stop and clean up the test database
 
 =head1 DESCRIPTION
 
 For L<Module::Build::Database> application tests, use Test::MBD in
-each test case that needs the database.  Runs 'Build dbtest
+each test case that needs the database.  Runs './Build dbtest
 --leave_running=1' to start up the test database if it isn't already
 running and leaves it running.
 
-Run Test::MBD::stop in your very last test case to shut down and clean
+Run Test::MBD->stop in your very last test case to shut down and clean
 up after the test database with 'Build dbclean'.
+
+Also, sets the environment variable TEST_PGHOST to the hostname for
+the test instance.
 
 =head1 SEE ALSO
 
