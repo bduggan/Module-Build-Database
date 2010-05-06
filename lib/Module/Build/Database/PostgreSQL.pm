@@ -296,7 +296,7 @@ sub _create_patch_table {
     # create a new patch table
     my $sql = <<EOSQL;
     CREATE TABLE patches_applied (
-        patch_name   varchar(255),
+        patch_name   varchar(255) primary key,
         patch_md5    varchar(255),
         when_applied timestamp );
 EOSQL
