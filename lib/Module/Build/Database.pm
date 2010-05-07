@@ -168,7 +168,7 @@ use warnings;
 use strict;
 use base 'Module::Build';
 
-our $VERSION = 0.04;
+our $VERSION = 0.05;
 
 sub _info($) { print STDERR shift(). "\n" unless $ENV{MBD_QUIET}; }
 

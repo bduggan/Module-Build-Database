@@ -6,6 +6,7 @@ WriteMakefile
           'VERSION_FROM' => 'lib/Module/Build/Database.pm',
           'PREREQ_PM' => {
                            'File::Copy::Recursive' => 0,
+                           'File::Slurp' => 0,
                            'IO::Socket::INET' => 0,
                            'Test::More' => 0
                          },
