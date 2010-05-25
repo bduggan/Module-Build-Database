@@ -5,22 +5,16 @@ use warnings;
 
 use File::Slurp 'slurp';
 
-sub import
-{
+sub import {
     my $class = shift;
 
-    foreach my $arg (@_)
-    {
-        start() if $arg eq '-autostart';
-    }
+    start() if grep { /^-autostart$/ } @_;
 }
 
-sub start
-{
+sub start {
     my $look_for = '_build/dbtest_host';
 
-    unless (-r $look_for)
-    {
+    unless (-r $look_for) {
         warn "# starting test database\n";
         system("MBD_QUIET=1 ./Build dbtest --leave_running=1") == 0
             or die "Could not start test database";
@@ -31,8 +25,7 @@ sub start
     $ENV{TEST_PGHOST} = $host;
 }
 
-sub stop
-{
+sub stop {
     warn "# stopping and cleaning test database\n";
     $ENV{MBD_QUIET} = 1;
     system("./Build dbclean") == 0;

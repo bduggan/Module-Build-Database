@@ -140,7 +140,7 @@ or dbinstall.
 =item dbinstall
 
  1. Look for a running database, based on environment variables
- 2. Apply any patches in db/patches/ that are not in the patches_applied table.
+ 2. Apply any patches in db/dist/patches_applied.txt that are not in the patches_applied table.
  3. Add an entry to the patches_applied table for each patch applied.
 
 =back
