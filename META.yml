@@ -1,6 +1,6 @@
 ---
 name: Module-Build-Database
-version: 0.05
+version: 0.06
 author:
   - 'Brian Duggan <brian.duggan@nasa.gov>'
 abstract: Manage database patches in the style of Module::Build.
@@ -17,7 +17,7 @@ configure_requires:
 provides:
   Module::Build::Database:
     file: lib/Module/Build/Database.pm
-    version: 0.05
+    version: 0.06
   Module::Build::Database::PostgreSQL:
     file: lib/Module/Build/Database/PostgreSQL.pm
   Module::Build::Database::PostgreSQL::Templates:
