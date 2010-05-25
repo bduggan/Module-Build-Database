@@ -3,6 +3,7 @@ package Test::MBD;
 use strict;
 use warnings;
 
+use Module::Build::Database;
 use File::Slurp 'slurp';
 
 sub import {
@@ -12,23 +13,23 @@ sub import {
 }
 
 sub start {
-    my $look_for = '_build/dbtest_host';
+    # NB: we could also just put this into ACTION_test, but then every test would start a db
+    # instance (including e.g. pod-coverage).
+    my $mbd = Module::Build::Database->current;
+    $mbd->notes( leave_running => 1 );
+    $ENV{MBD_QUIET} = 1;
+    return if $mbd->notes("already_started");
 
-    unless (-r $look_for) {
-        warn "# starting test database\n";
-        system("MBD_QUIET=1 ./Build dbtest --leave_running=1") == 0
-            or die "Could not start test database";
-    }
-
-    my $host = slurp($look_for);
-    chomp $host;
-    $ENV{TEST_PGHOST} = $host;
+    $mbd->depends_on("dbtest"); # runs this action
+    $mbd->notes(already_started => 1);
 }
 
 sub stop {
     warn "# stopping and cleaning test database\n";
+    my $mbd = Module::Build::Database->current;
     $ENV{MBD_QUIET} = 1;
-    system("./Build dbclean") == 0;
+    $mbd->depends_on("dbclean");
+    return 1;
 }
 
 1;
@@ -49,15 +50,12 @@ Test::MBD - Helper for testing Module::Build::Database apps
 =head1 DESCRIPTION
 
 For L<Module::Build::Database> application tests, use Test::MBD in
-each test case that needs the database.  Runs './Build dbtest
+each test case that needs the database.  Invokes './Build dbtest
 --leave_running=1' to start up the test database if it isn't already
 running and leaves it running.
 
 Run Test::MBD->stop in your very last test case to shut down and clean
 up after the test database with 'Build dbclean'.
-
-Also, sets the environment variable TEST_PGHOST to the hostname for
-the test instance.
 
 =head1 SEE ALSO
 
