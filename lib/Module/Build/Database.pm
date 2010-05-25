@@ -270,7 +270,7 @@ sub ACTION_dbtest {
     # and remove it
     $self->_remove_db();
 
-    return $passes=@todo;
+    return $passes==@todo;
 }
 
 sub ACTION_dbclean {
