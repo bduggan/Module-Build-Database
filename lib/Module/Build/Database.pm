@@ -109,8 +109,10 @@ In other words :
     patches do not apply cleanly.
  4. Shut down the database instance.
 
-If --leave_running=1 is passed, step 4 will not be executed,
-and the host will be printed to the file _build/dbtest_host.
+If --leave_running=1 is passed, step 4 will not be executed.
+The "host" for the database can be found in
+
+ Module::Build::Database->current->notes("dbtest_host");
 
 =item dbclean
 
@@ -147,11 +149,13 @@ or dbinstall.
 
 =head1 NOTES
 
-If A database needs to be brought up to date post facto the command line tool
-"mbd-tool" may be used to perform the fakeinstall and install actions.
-
 Patches will be applied in lexicographic order, so their names should start
 with a sequence of digits, e.g.  0010_something.sql, 0020_something_else.sql, etc.
+
+=head1 TODO
+
+Allow dbclean to not interfere with other running mbd-test databases.  Currently it
+errs on the side of cleaning up too much.
 
 =head1 SEE ALSO
 
@@ -226,10 +230,11 @@ sub _diff_files {
 
 sub ACTION_dbtest {
     my $self = shift;
-    my $dbtest_host_file = $self->base_dir."/_build/dbtest_host";
 
     # 1. Start a new empty database instance.
-    $self->_start_new_db();
+    warn "# starting test database\n";
+    my $host = $self->_start_new_db() or die "could not start the db";
+    $self->notes(dbtest_host => $host);
 
     # 2. Apply db/dist/base.sql.
     _info "applying base.sql";
@@ -256,19 +261,14 @@ sub ACTION_dbtest {
         $i++;
     }
 
-    if ($self->runtime_params("leave_running")) {
-        my $fp = IO::File->new(">$dbtest_host_file")
-          or die "open $dbtest_host_file failed : $!";
-        print $fp $self->_dbhost()."\n";
-        $fp->close or die $!;
-        return 1;
-    }
+    return 1 if $self->runtime_params("leave_running") || $self->notes("leave_running");
 
     # 4. Shut down the database instance.
     $self->_stop_db();
 
     # and remove it
     $self->_remove_db();
+    $self->notes(dbtest_host => "");
 
     return $passes==@todo;
 }
@@ -277,9 +277,8 @@ sub ACTION_dbclean {
     my $self = shift;
 
     # Remove any test databases created, stop any daemons.
-    $self->_cleanup_old_dbs(all => 1);
-    my $dbtest_host_file = $self->base_dir."/_build/dbtest_host";
-    -e $dbtest_host_file and do { unlink $dbtest_host_file or die $!; };
+    $self->_cleanup_old_dbs(all => 1); # NB: this may conflict with other instances
+    $self->notes(dbtest_host => "");
 }
 
 sub ACTION_dbdist {
@@ -327,6 +326,7 @@ sub ACTION_dbdist {
 
     # 6. Wipe it.
     $self->_remove_db();
+    $self->notes(dbtest_host => "");
 }
 
 sub ACTION_dbdocs {
@@ -395,7 +395,7 @@ sub ACTION_dbfakeinstall {
     $self->_apply_patch($_) for @todo;
     $self->_remove_patches_applied_table();
     $self->_dump_base_sql(outfile => "$tmp");
-    $self->_diff_files("$tmp", $self->base_dir. "/db/dist/base.sql") 
+    $self->_diff_files("$tmp", $self->base_dir. "/db/dist/base.sql")
         or warn "Applying patches will not result in a schema identical to base.sql\n";
 }
 

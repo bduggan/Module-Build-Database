@@ -142,6 +142,7 @@ sub _cleanup_old_dbs {
 
 sub _start_new_db {
     my $self = shift;
+    # Start a new database and return the host on which it was started.
 
     $self->_cleanup_old_dbs();
 
@@ -175,6 +176,7 @@ sub _start_new_db {
     }
 
     $self->_create_database();
+    return $self->_dbhost;
 }
 
 sub _remove_db {
