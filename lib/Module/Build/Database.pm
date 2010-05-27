@@ -248,10 +248,10 @@ sub ACTION_dbtest {
     my $passes = 0;
     for my $filename (@todo) {
         if ($self->_apply_patch($filename)) {
-            print "ok $i - applied $filename\n";
+            print "ok $i - applied $filename\n" unless $ENV{MBD_QUIET};
             $passes++;
         } else {
-            print "not ok $i - applied $filename\n";
+            print "not ok $i - applied $filename\n" unless $ENV{MBD_QUIET};
         }
         $i++;
     }
