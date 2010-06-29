@@ -248,7 +248,7 @@ sub ACTION_dbtest {
     my @todo = $self->_find_patch_files(pending => 1);
 
     _info "no unapplied patches" unless @todo;
-    print "1..".@todo."\n" if @todo and not $ENV{MBD_QUIET};
+    print "1..".@todo."\n" if (@todo && !$ENV{MBD_QUIET});
     my $i = 1;
     my $passes = 0;
     for my $filename (@todo) {
