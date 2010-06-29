@@ -20,7 +20,7 @@ sub start {
     $ENV{MBD_QUIET} = 1;
     return if $mbd->notes("already_started");
 
-    $mbd->depends_on("dbtest"); # runs this action
+    $mbd->depends_on("dbtest"); # runs ACTION_dbtest
     $mbd->notes(already_started => 1);
 }
 
@@ -28,7 +28,8 @@ sub stop {
     warn "# stopping and cleaning test database\n";
     my $mbd = Module::Build::Database->current;
     $ENV{MBD_QUIET} = 1;
-    $mbd->depends_on("dbclean");
+    $mbd->depends_on("dbclean");  # runs ACTION_dbclean
+    $mbd->notes(already_started => 0);
     return 1;
 }
 
