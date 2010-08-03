@@ -334,7 +334,7 @@ sub _create_database {
     }
 
     # Create a fresh schema in the database.
-    $self->_do_psql("create schema $database_schema");
+    $self->_do_psql("create schema $database_schema") unless $database_schema eq 'public';
 
     $self->_do_psql("alter database $database_name set client_min_messages to ERROR");
 
