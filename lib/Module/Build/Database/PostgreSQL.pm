@@ -232,8 +232,11 @@ sub _dump_base_sql {
     # -x : no privileges, -O : no owner, -s : schema only, -n : only this schema
     my $database_schema = $self->database_options('schema');
     my $database_name   = $self->database_options('name');
-    _do_system( $Bin{Pgdump}, "-xOs", "-n", $database_schema, $database_name, "|",
-        "egrep -v '^CREATE SCHEMA $database_schema;\$'",
+    _do_system( $Bin{Pgdump}, "-xOs", "-n", $database_schema, $database_name,
+         "|", "egrep -v '^CREATE SCHEMA $database_schema;\$'",
+         "|", "egrep -v 'Type: SCHEMA;'",
+         "|", "sed 's/Schema: $database_schema;/Schema: -/'",
+         "|", "egrep -v '^SET search_path'",
         ">", "$tmpfile" )
       or return 0;
     rename "$tmpfile", $outfile or die "rename failed: $!";
