@@ -45,3 +45,4 @@
 
 # Avoid archives of this distribution
 \bModule-Build-Database-[\d\.\_]+
+^MYMETA.yml$
