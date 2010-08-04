@@ -170,11 +170,11 @@ use File::Path qw/mkpath/;
 use Digest::MD5;
 use warnings;
 use strict;
+
+use Module::Build::Database::Helpers qw/debug info/;
 use base 'Module::Build';
 
 our $VERSION = 0.07;
-
-sub _info($) { print STDERR shift(). "\n" unless $ENV{MBD_QUIET}; }
 
 sub new {
     my $class = shift;
@@ -237,7 +237,7 @@ sub ACTION_dbtest {
     $self->notes(dbtest_host => $host);
 
     # 2. Apply db/dist/base.sql.
-    _info "applying base.sql";
+    info "applying base.sql";
     $self->_apply_base_sql();
 
     # 3. Apply any patches in db/patches/*.sql that are
@@ -247,7 +247,7 @@ sub ACTION_dbtest {
 
     my @todo = $self->_find_patch_files(pending => 1);
 
-    _info "no unapplied patches" unless @todo;
+    info "no unapplied patches" unless @todo;
     print "1..".@todo."\n" if (@todo && !$ENV{MBD_QUIET});
     my $i = 1;
     my $passes = 0;
@@ -312,14 +312,14 @@ sub ACTION_dbdist {
                   ->hexdigest;
         $self->_apply_patch($filename) or die "Failed to apply $filename";
         print ${fp} (join "\t", $filename, $hash)."\n";
-        _info "Applied patch $filename";
+        info "Applied patch $filename";
     }
     $fp->close;
-    _info "Wrote $patches_file" if @todo;
+    info "Wrote $patches_file" if @todo;
 
     # 4. Dump the new schema out to db/dist/base.sql
     $self->_dump_base_sql();
-    _info "Wrote $dbdist/base.sql";
+    info "Wrote $dbdist/base.sql";
 
     # 5. Stop the database.
     $self->_stop_db();
@@ -349,7 +349,7 @@ sub ACTION_dbfakeinstall {
     my $existing_schema = File::Temp->new();
     $existing_schema->close;
     if ($self->_is_fresh_install()) {
-        _info "Ready to create the base database.";
+        info "Ready to create the base database.";
         return;
     } else {
         $self->_dump_base_sql(outfile => "$existing_schema");
@@ -360,7 +360,7 @@ sub ACTION_dbfakeinstall {
     if ($self->_patch_table_exists()) {
         $self->_dump_patch_table(outfile => "$tmp");
     } else {
-        _info "There is no patch table, it will be created.";
+        info "There is no patch table, it will be created.";
         unlink "$tmp" or die "error unlinking $tmp: $!";
     }
 
@@ -370,16 +370,17 @@ sub ACTION_dbfakeinstall {
     my %db_patches = $self->_read_patches_applied_file(filename => "$tmp");
     my %base_patches  = $self->_read_patches_applied_file();
     my @todo = grep { !$db_patches{$_} } sort keys %base_patches;
+    debug "patches todo : @todo";
     for my $patch (sort keys %db_patches) {
         unless (exists $base_patches{$patch}) {
-            _info "WARNING: patch $patch in db is not in patches_applied.txt";
+            info "WARNING: patch $patch in db is not in patches_applied.txt";
             next;
         }
         next if "@{ $db_patches{$patch} }" eq "@{ $base_patches{$patch} }";
-        _info "WARNING: @{ $db_patches{$patch} } != @{ $base_patches{$patch} }";
+        info "WARNING: @{ $db_patches{$patch} } != @{ $base_patches{$patch} }";
     }
     for my $patch (@todo) {
-        _info "Will apply patch $patch";
+        info "Will apply patch $patch";
     }
 
     # 5a. Start a temporary database, apply the live schema.
@@ -403,7 +404,7 @@ sub ACTION_dbinstall {
     my $self = shift;
 
     if ($self->_is_fresh_install()) {
-        _info "Fresh install.";
+        info "Fresh install.";
         $self->_create_database() or die "could not create database\n";
         $self->_apply_base_sql() or die "could not apply base sql\n";
     }
@@ -411,7 +412,7 @@ sub ACTION_dbinstall {
     my %base_patches = $self->_read_patches_applied_file();
     unless ($self->_patch_table_exists()) {
         # add records for all patches which have been applied to the base
-        _info "Creating a new patch table";
+        info "Creating a new patch table";
         $self->_create_patch_table() or die "could not create patch table\n";
         for my $patch (sort keys %base_patches) {
             $self->_insert_patch_record($base_patches{$patch});

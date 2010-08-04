@@ -24,7 +24,7 @@ my $builder = Module::Build::Database->new(
 
 =head1 DESCRIPTION
 
-$Bin{Postgres} driver for Module::Build::Database.
+Postgres driver for Module::Build::Database.
 
 =head1 NOTES
 
@@ -38,12 +38,14 @@ the name of the database should be given in Build.PL.
 
 package Module::Build::Database::PostgreSQL;
 use base 'Module::Build::Database';
-use Module::Build::Database::PostgreSQL::Templates;
 use File::Temp qw/tempdir/;
 use File::Path qw/rmtree/;
 use File::Basename qw/dirname/;
 use File::Copy::Recursive qw/fcopy dirmove/;
 use IO::File;
+
+use Module::Build::Database::PostgreSQL::Templates;
+use Module::Build::Database::Helpers qw/do_system verify_bin info debug/;
 use strict;
 use warnings;
 
@@ -62,29 +64,8 @@ our %Bin = (
     Pgdump     => 'pg_dump',
     Pgdoc      => 'pg_autodoc',
 );
+verify_bin(%Bin);
 
-sub _info($) { print STDERR shift(). "\n" unless $ENV{MBD_QUIET}; }
-sub _debug($) { print STDERR shift(). "\n" if $ENV{MBD_DEBUG}; }
-sub _do_system {
-    our %BinR = reverse %Bin;
-    our %BinV; # verify that binaries exist.
-    my $silent = ($_[0] eq '_silent' ? shift : 0);
-    my $cmd = $_[0];
-    if (exists($BinR{$cmd}) && !$BinV{$cmd}) {
-        $BinV{$cmd} = qx[which $cmd] or die "could not find $cmd";
-    }
-    if ($ENV{MBD_FAKE} || $ENV{MBD_DEBUG}) {
-        _info "fake: system call : @_";
-        return if $ENV{MBD_FAKE};
-    }
-    #Carp::cluck("doing------- @_\n");
-    system("@_") == 0
-      or do {
-        warn "Error with '@_' : $? " . ( ${^CHILD_ERROR_NATIVE} || '' ) . "\n" unless $silent;
-        return 0;
-      };
-    return 1;
-}
 sub _do_psql {
     my $self = shift;
     my $sql = shift;
@@ -93,21 +74,21 @@ sub _do_psql {
     print $tmp $sql;
     $tmp->close;
     # -q: quiet, ON_ERROR_STOP: throw exceptions
-    _do_system( $Bin{Psql}, "-q", "-v'ON_ERROR_STOP=1'", "-f", "$tmp", $database_name );
+    do_system( $Bin{Psql}, "-q", "-v'ON_ERROR_STOP=1'", "-f", "$tmp", $database_name );
 }
 sub _do_psql_out {
     my $self = shift;
     my $sql = shift;
     my $database_name  = $self->database_options('name');
     # -F field separator, -x extended output, -A: unaligned
-    _do_system( $Bin{Psql}, "-q", "-v'ON_ERROR_STOP=1'", "-A", "-F ' : '", "-x", "-c", qq["$sql"], $database_name );
+    do_system( $Bin{Psql}, "-q", "-v'ON_ERROR_STOP=1'", "-A", "-F ' : '", "-x", "-c", qq["$sql"], $database_name );
 }
 sub _do_psql_file {
     my $self = shift;
     my $filename = shift;
     my $database_name  = $self->database_options('name');
     # -q: quiet, ON_ERROR_STOP: throw exceptions
-    _do_system($Bin{Psql},"-q","-v'ON_ERROR_STOP=1'","-f",$filename, $database_name);
+    do_system($Bin{Psql},"-q","-v'ON_ERROR_STOP=1'","-f",$filename, $database_name);
 }
 sub _do_psql_into_file {
     my $self = shift;
@@ -115,7 +96,7 @@ sub _do_psql_into_file {
     my $sql      = shift;
     my $database_name  = $self->database_options('name');
     # -A: unaligned, -F: field separator, -t: tuples only, ON_ERROR_STOP: throw exceptions
-    _do_system( $Bin{Psql}, "-q", "-v'ON_ERROR_STOP=1'", "-A", "-F '\t'", "-t", "-c", qq["$sql"], $database_name, ">", "$filename" );
+    do_system( $Bin{Psql}, "-q", "-v'ON_ERROR_STOP=1'", "-A", "-F '\t'", "-t", "-c", qq["$sql"], $database_name, ">", "$filename" );
 }
 sub _do_psql_capture {
     my $self = shift;
@@ -133,7 +114,7 @@ sub _cleanup_old_dbs {
     $glob =~ s/mbdtest_.*$/mbdtest_*/;
     for my $thisdir (glob $glob) {
         next if $thisdir eq $tmpdir && !$args{all};
-        _debug "cleaning up old tmp instance : $thisdir";
+        debug "cleaning up old tmp instance : $thisdir";
         $self->_stop_db("$thisdir/db");
         rmtree($thisdir);
     }
@@ -153,23 +134,23 @@ sub _start_new_db {
     my $initlog         = "$tmpdir/postgres.log";
     $self->_tmp_db_dir($dbdir);
 
-    $ENV{PGHOST}     = "$dbdir"; # makes psql use a socket, not a tcp port0
+    $ENV{PGHOST}     = "$dbdir"; # makes psql use a socket, not a tcp port
     $ENV{PGDATABASE} = $database_name;
     delete $ENV{PGUSER};
     delete $ENV{PGPORT};
 
-    _debug "initializing database (log: $initlog)";
+    debug "initializing database (log: $initlog)";
 
-    _do_system($Bin{Initdb}, "-D", "$dbdir", ">>", "$initlog", "2>&1") or die "could not initdb";
+    do_system($Bin{Initdb}, "-D", "$dbdir", ">>", "$initlog", "2>&1") or die "could not initdb";
 
-    _do_system($Bin{Postgres}, "-D", "$dbdir", "-k", "$dbdir", "-h ''", "-c silent_mode=on")
+    do_system($Bin{Postgres}, "-D", "$dbdir", "-k", "$dbdir", "-h ''", "-c silent_mode=on")
         or die "could not start postgres";
 
     my $pmlog = "$dbdir/postmaster.log";
     my $i = 0;
     # NB: This technique is from Test::$Bin{Postgres}, but maybe easier is "pg_ctl -w start"
     while (! -e "$pmlog" or not grep /ready/, IO::File->new("<$pmlog")->getlines ) {
-        _debug "waiting for postgres to start..(log: $pmlog)";
+        debug "waiting for postgres to start..(log: $pmlog)";
         sleep 1;
         last if $ENV{MBD_FAKE};
         die "postgres did not start, see $pmlog" if ++$i > 30;
@@ -193,7 +174,7 @@ sub _stop_db {
     my $dbdir = shift || $self->_tmp_db_dir();
     my $pid_file = "$dbdir/postmaster.pid";
     unless (-e $pid_file) {
-        _info "no pid file ($pid_file), not stopping db";
+        info "no pid file ($pid_file), not stopping db";
         return;
     }
     my ($pid) = IO::File->new("<$pid_file")->getlines;
@@ -203,10 +184,10 @@ sub _stop_db {
     while ($i < 10 ) {
         sleep $i++;
         return unless kill 0, $pid;
-        _info "waiting for pid $pid to stop";
+        info "waiting for pid $pid to stop";
     }
-    _info "db didn't stop, forcing shutdown";
-    kill 9, $pid or _info "could not send signal to $pid";
+    info "db didn't stop, forcing shutdown";
+    kill 9, $pid or info "could not send signal to $pid";
 }
 
 sub _apply_base_sql {
@@ -232,7 +213,7 @@ sub _dump_base_sql {
     # -x : no privileges, -O : no owner, -s : schema only, -n : only this schema
     my $database_schema = $self->database_options('schema');
     my $database_name   = $self->database_options('name');
-    _do_system( $Bin{Pgdump}, "-xOs", "-E", "utf8", "-n", $database_schema, $database_name,
+    do_system( $Bin{Pgdump}, "-xOs", "-E", "utf8", "-n", $database_schema, $database_name,
          "|", "egrep -v '^CREATE SCHEMA $database_schema;\$'",
          "|", "egrep -v 'Type: SCHEMA;'",
          "|", "sed 's/Schema: $database_schema;/Schema: -/'",
@@ -254,26 +235,26 @@ sub _is_fresh_install {
 
     my $database_name = $self->database_options('name');
     unless ($self->_database_exists) {
-        _info "database $database_name does not exist";
+        info "database $database_name does not exist";
         return 1;
     }
 
     my $file = File::Temp->new(); $file->close;
     my $database_schema = $self->database_options('schema');
     $self->_do_psql_into_file("$file","\\dn $database_schema");
-    return !_do_system("_silent","grep -q $database_schema $file");
+    return !do_system("_silent","grep -q $database_schema $file");
 }
 
 sub _show_live_db {
     # Display the connection information
     my $self = shift;
 
-    _info "PGUSER : " . ( $ENV{PGUSER}     || "<undef>" );
-    _info "PGHOST : " . ( $ENV{PGHOST}     || "<undef>" );
-    _info "PGPORT : " . ( $ENV{PGPORT}     || "<undef>" );
+    info "PGUSER : " . ( $ENV{PGUSER}     || "<undef>" );
+    info "PGHOST : " . ( $ENV{PGHOST}     || "<undef>" );
+    info "PGPORT : " . ( $ENV{PGPORT}     || "<undef>" );
 
     my $database_name = shift || $self->database_options('name');
-    _info "database : $database_name";
+    info "database : $database_name";
 
     return unless $self->_database_exists;
     $self->_do_psql_out("select current_database(),session_user,version();");
@@ -284,7 +265,7 @@ sub _patch_table_exists {
     my $self = shift;
     my $file = File::Temp->new(); $file->close;
     $self->_do_psql_into_file("$file","select tablename from pg_tables where tablename='patches_applied'");
-    return _do_system("_silent","grep -q patches_applied $file");
+    return do_system("_silent","grep -q patches_applied $file");
 }
 
 sub _dump_patch_table {
@@ -319,7 +300,7 @@ sub _insert_patch_record {
 sub _database_exists {
     my $self  =  shift;
     my $database_name = shift || $self->database_options('name');
-    _do_system("_silent","psql -Alt -F ':' | egrep -q '^$database_name:'");
+    do_system("_silent","psql -Alt -F ':' | egrep -q '^$database_name:'");
 }
 
 sub _create_database {
@@ -330,7 +311,7 @@ sub _create_database {
 
     # create the database if necessary
     unless ($self->_database_exists($database_name)) {
-        _do_system($Bin{Createdb}, $database_name) or die "could not createdb";
+        do_system($Bin{Createdb}, $database_name) or die "could not createdb";
     }
 
     # Create a fresh schema in the database.
@@ -341,7 +322,7 @@ sub _create_database {
     $self->_do_psql("alter database $database_name set search_path to $database_schema;");
 
     if (my $postgis = $self->database_extensions('postgis')) {
-        _info "applying postgis extension";
+        info "applying postgis extension";
         my $postgis_schema = $postgis->{schema} or die "No schema given for postgis";
         $self->_do_psql("create schema $postgis_schema") unless $postgis_schema eq 'public';
         $self->_do_psql("alter database $database_name set search_path to $postgis_schema;");
@@ -378,9 +359,9 @@ sub _generate_docs {
     }
 
     # http://perlmonks.org/?node_id=821413
-    _do_system( $Bin{Pgdoc}, "-d", $database_name, "-s", $database_schema, "-l .", "-t pod" );
-    _do_system( $Bin{Pgdoc}, "-d", $database_name, "-s", $database_schema, "-l .", "-t html" );
-    _do_system( $Bin{Pgdoc}, "-d", $database_name, "-s", $database_schema, "-l .", "-t dot" );
+    do_system( $Bin{Pgdoc}, "-d", $database_name, "-s", $database_schema, "-l .", "-t pod" );
+    do_system( $Bin{Pgdoc}, "-d", $database_name, "-s", $database_schema, "-l .", "-t html" );
+    do_system( $Bin{Pgdoc}, "-d", $database_name, "-s", $database_schema, "-l .", "-t dot" );
 
     for my $type qw(pod html) {
         my $fp = IO::File->new("<$database_name.$type") or die $!;
@@ -393,11 +374,11 @@ sub _generate_docs {
         }
     }
     dirmove "$tmpdir/pod", "$dir/pod";
-    _info "Generated $dir/pod";
+    info "Generated $dir/pod";
     dirmove "$tmpdir/html", "$dir/html";
-    _info "Generated $dir/html";
+    info "Generated $dir/html";
     fcopy "$tmpdir/$database_name.dot", "$dir";
-    _info "Generated $dir/$database_name.dot";
+    info "Generated $dir/$database_name.dot";
 }
 
 sub ACTION_dbtest        { shift->SUPER::ACTION_dbtest(@_);        }
