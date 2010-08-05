@@ -62,7 +62,7 @@ our %Bin = (
     Initdb     => 'initdb',
     Createdb   => 'createdb',
     Pgdump     => 'pg_dump',
-    Pgdoc      => 'pg_autodoc',
+    Pgdoc      => [ qw/pg_autodoc postgresql_autodoc/ ],
 );
 verify_bin(%Bin);
 

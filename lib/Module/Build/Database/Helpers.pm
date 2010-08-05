@@ -30,10 +30,17 @@ sub do_system {
 
 sub verify_bin {
     my %Bin = @_;
-    my %BinR = reverse %Bin;
-    my %BinV; # verify that binaries exist.
-    for my $cmd (values %Bin) {
-        my $found = qx[which $cmd] or die "could not find $cmd";
+    for my $label (keys %Bin) {
+        my @look_for = (ref $Bin{$label} eq 'ARRAY' ? @{ $Bin{$label} } : $Bin{$label});
+        my $found;
+        for my $potential_cmd (@look_for) {
+            last if ($found = qx[which $potential_cmd]);
+        }
+        unless ($found) {
+            die "could not find ".(join " or ",@look_for)." in current path\n";
+        }
+        chomp $found;
+        $Bin{$label} = $found;
     }
 }
 

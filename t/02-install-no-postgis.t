@@ -79,5 +79,7 @@ like $out, qr/x.*integer/, "made column x type integer";
 
 _sysok("pg_ctl -D $dbdir stop") unless $debug;
 
+chdir '..'; # otherwise file::temp can't clean up
+
 1;
 
