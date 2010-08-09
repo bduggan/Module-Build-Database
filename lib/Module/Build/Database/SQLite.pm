@@ -35,7 +35,7 @@ our $dbFile;
 our %Bin = (
     Sqlite => 'sqlite3'
 );
-verify_bin(%Bin);
+verify_bin(\%Bin);
 
 sub _show_live_db {
     my $self = shift;

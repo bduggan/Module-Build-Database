@@ -64,7 +64,7 @@ our %Bin = (
     Pgdump     => 'pg_dump',
     Pgdoc      => [ qw/pg_autodoc postgresql_autodoc/ ],
 );
-verify_bin(%Bin);
+verify_bin(\%Bin);
 
 sub _do_psql {
     my $self = shift;

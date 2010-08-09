@@ -29,9 +29,9 @@ sub do_system {
 }
 
 sub verify_bin {
-    my %Bin = @_;
-    for my $label (keys %Bin) {
-        my @look_for = (ref $Bin{$label} eq 'ARRAY' ? @{ $Bin{$label} } : $Bin{$label});
+    my $bin = shift;
+    for my $label (keys %$bin) {
+        my @look_for = (ref $bin->{$label} eq 'ARRAY' ? @{ $bin->{$label} } : $bin->{$label});
         my $found;
         for my $potential_cmd (@look_for) {
             last if ($found = qx[which $potential_cmd 2>/dev/null]);
@@ -40,7 +40,7 @@ sub verify_bin {
             debug "could not find ".(join " or ",@look_for)." in current path\n";
         }
         chomp $found;
-        $Bin{$label} = $found;
+        $bin->{$label} = $found;
     }
 }
 
