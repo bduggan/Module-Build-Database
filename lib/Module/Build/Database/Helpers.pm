@@ -37,7 +37,7 @@ sub verify_bin {
             last if ($found = qx[which $potential_cmd]);
         }
         unless ($found) {
-            die "could not find ".(join " or ",@look_for)." in current path\n";
+            debug "could not find ".(join " or ",@look_for)." in current path\n";
         }
         chomp $found;
         $Bin{$label} = $found;

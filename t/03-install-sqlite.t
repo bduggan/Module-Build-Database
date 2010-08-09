@@ -46,7 +46,9 @@ _sysok("./Build dbfakeinstall");
 _sysok("./Build dbinstall");
 
 my $out = `echo ".schema one" | sqlite3 sqlite_app.db`;
+
 diag $out;
+chdir "$dir/..";
 
 1;
 
