@@ -34,7 +34,7 @@ sub verify_bin {
         my @look_for = (ref $Bin{$label} eq 'ARRAY' ? @{ $Bin{$label} } : $Bin{$label});
         my $found;
         for my $potential_cmd (@look_for) {
-            last if ($found = qx[which $potential_cmd]);
+            last if ($found = qx[which $potential_cmd 2>/dev/null]);
         }
         unless ($found) {
             debug "could not find ".(join " or ",@look_for)." in current path\n";
