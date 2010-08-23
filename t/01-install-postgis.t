@@ -32,6 +32,7 @@ copy "$src_dir/db/patches/0010_one.sql","$dir/db/patches";
 chdir $dir;
 
 $ENV{PERL5LIB} = join ':', @INC;
+delete $ENV{MODULEBUILDRC};
 
 _sysok("perl Build.PL");
 
