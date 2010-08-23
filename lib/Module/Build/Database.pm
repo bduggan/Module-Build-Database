@@ -225,7 +225,7 @@ sub _read_patches_applied_file {
 sub _diff_files {
     my $self = shift;
     my ($one,$two) = @_;
-    return system("diff $one $two")==0;
+    return system("diff -w $one $two")==0;
 }
 
 sub ACTION_dbtest {
