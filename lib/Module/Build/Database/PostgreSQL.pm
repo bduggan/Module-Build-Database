@@ -214,9 +214,8 @@ sub _dump_base_sql {
     my $database_schema = $self->database_options('schema');
     my $database_name   = $self->database_options('name');
     do_system( $Bin{Pgdump}, "-xOs", "-E", "utf8", "-n", $database_schema, $database_name,
+         "|", "egrep -v '^--'",
          "|", "egrep -v '^CREATE SCHEMA $database_schema;\$'",
-         "|", "egrep -v 'Type: SCHEMA;'",
-         "|", "sed 's/Schema: $database_schema;/Schema: -/'",
          "|", "egrep -v '^SET search_path'",
         ">", "$tmpfile" )
       or return 0;
