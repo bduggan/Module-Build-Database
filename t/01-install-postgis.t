@@ -7,11 +7,21 @@ use File::Copy qw/copy/;
 use IO::Socket::INET;
 use FindBin;
 
-if (-e "/util/share/postgresql/contrib/postgis.sql") {
-    plan qw/no_plan/;
-} else {
+unless (-e "/util/share/postgresql/contrib/postgis.sql") {
     plan skip_all => "No postgis.sql";
 }
+
+my @pg_version = `postgres --version` =~ / (\d+)\.(\d+)\.(\d+)$/;
+
+unless ($pg_version[0] >= 8) {
+    plan skip_all => "postgres version $pg_version[0] must be >= 8";
+}
+
+unless ($pg_version[1] >= 4) {
+    plan skip_all => "postgres minor version $pg_version[1] must be >= 4";
+}
+
+plan qw/no_plan/;
 
 my $debug = 0;
 

@@ -1,11 +1,24 @@
 #!perl
 
-use Test::More qw/no_plan/;
+use Test::More;
 use File::Temp qw/tempdir/;
 use File::Path qw/mkpath/;
 use File::Copy qw/copy/;
 use IO::Socket::INET;
 use FindBin;
+
+my @pg_version = `postgres --version` =~ / (\d+)\.(\d+)\.(\d+)$/;
+
+unless ($pg_version[0] >= 8) {
+    plan skip_all => "postgres version $pg_version[0] must be >= 8";
+}
+
+unless ($pg_version[1] >= 4) {
+    plan skip_all => "postgres minor version $pg_version[1] must be >= 4";
+}
+
+plan qw/no_plan/;
+
 
 my $debug = 0;
 
