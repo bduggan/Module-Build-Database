@@ -7,7 +7,7 @@ use File::Copy qw/copy/;
 use IO::Socket::INET;
 use FindBin;
 
-my @pg_version = `postgres --version` =~ / (\d+)\.(\d+)\.(\d+)$/;
+my @pg_version = `postgres --version` =~ / (\d+)\.(\d+)\.(\d+)$/m;
 
 unless ($pg_version[0] >= 8) {
     plan skip_all => "postgres version $pg_version[0] must be >= 8";
