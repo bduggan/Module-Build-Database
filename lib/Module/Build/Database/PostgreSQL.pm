@@ -320,12 +320,13 @@ sub _create_database {
 
     $self->_do_psql("alter database $database_name set search_path to $database_schema;");
 
+    $self->_do_psql("create procedural language plpgsql");
+
     if (my $postgis = $self->database_extensions('postgis')) {
         info "applying postgis extension";
         my $postgis_schema = $postgis->{schema} or die "No schema given for postgis";
         $self->_do_psql("create schema $postgis_schema") unless $postgis_schema eq 'public';
         $self->_do_psql("alter database $database_name set search_path to $postgis_schema;");
-        $self->_do_psql("create procedural language plpgsql");
         # We need to run "createlang plpgsql" first.
         $self->_do_psql_file($self->postgis_base. "/postgis.sql") or die "could not do postgis.sql";
         $self->_do_psql_file($self->postgis_base. "/spatial_ref_sys.sql") or die "could not do spatial_ref_sys.sql";
