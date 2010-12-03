@@ -252,7 +252,6 @@ sub _dump_base_data {
     rename "$tmpfile", $outfile or die "rename failed: $!";
 }
 
-
 sub _apply_patch {
     my $self = shift;
     my $patch_file = shift;

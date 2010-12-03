@@ -139,6 +139,15 @@ sub _apply_base_sql {
     my $self = shift;
     my $filename = shift || $self->base_dir."/db/dist/base.sql";
     return unless -e $filename;
+    info "applying base.sql";
+    $self->_do_sql_file($filename);
+}
+
+sub _apply_base_data {
+    my $self = shift;
+    my $filename = shift || $self->base_dir."/db/dist/base_data.sql";
+    return unless -e $filename;
+    info "applying base_data.sql";
     $self->_do_sql_file($filename);
 }
 
@@ -166,6 +175,25 @@ sub _dump_base_sql {
     $tmpfile->close;
 
     debug "dumping base sql";
+    $self->_do_sqlite(qq[.output $tmpfile\n.schema\n.exit\n]);
+    rename "$tmpfile", $outfile or die "rename failed: $!";
+}
+
+sub _dump_base_data {
+    my $self = shift;
+    my %args = @_;
+    my $outfile = $args{outfile} || $self->base_dir. "/db/dist/base_data.sql";
+
+    $dbFile ||= $self->database_options('name');
+
+    my $tmpfile = File::Temp->new(
+        TEMPLATE => (dirname $outfile)."/dump_XXXXXX",
+        UNLINK   => 0
+    );
+    $tmpfile->close;
+    debug "dumping base_data.sql";
+
+    # XXX this needs work; won't work for dbfakeinstall
     $self->_do_sqlite(qq[.output $tmpfile\n.dump\n.exit\n]);
     rename "$tmpfile", $outfile or die "rename failed: $!";
 }
