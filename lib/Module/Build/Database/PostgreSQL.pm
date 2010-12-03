@@ -194,6 +194,15 @@ sub _apply_base_sql {
     my $self = shift;
     my $filename = shift || $self->base_dir."/db/dist/base.sql";
     return unless -e $filename;
+    info "applying base.sql";
+    $self->_do_psql_file($filename);
+}
+
+sub _apply_base_data {
+    my $self = shift;
+    my $filename = shift || $self->base_dir."/db/dist/base_data.sql";
+    return unless -e $filename;
+    info "applying base_data.sql";
     $self->_do_psql_file($filename);
 }
 
@@ -221,6 +230,28 @@ sub _dump_base_sql {
       or return 0;
     rename "$tmpfile", $outfile or die "rename failed: $!";
 }
+
+sub _dump_base_data {
+    # Optional parameter "outfile, defaults to db/dist/base_data.sql
+    my $self = shift;
+    my %args = @_;
+    my $outfile = $args{outfile} || $self->base_dir. "/db/dist/base_data.sql";
+
+    my $tmpfile = File::Temp->new(
+        TEMPLATE => (dirname $outfile)."/dump_XXXXXX",
+        UNLINK   => 0
+    );
+    $tmpfile->close;
+
+    # -x : no privileges, -O : no owner, -s : schema only, -n : only this schema
+    my $database_schema = $self->database_options('schema');
+    my $database_name   = $self->database_options('name');
+    do_system( $Bin{Pgdump}, "--data-only", "-xO", "-E", "utf8", "-n", $database_schema, $database_name,
+        ">", "$tmpfile" )
+      or return 0;
+    rename "$tmpfile", $outfile or die "rename failed: $!";
+}
+
 
 sub _apply_patch {
     my $self = shift;

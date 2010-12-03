@@ -237,8 +237,10 @@ sub ACTION_dbtest {
     $self->notes(dbtest_host => $host);
 
     # 2. Apply db/dist/base.sql.
-    info "applying base.sql";
     $self->_apply_base_sql();
+
+    # 2.1 Apply db/dist/base_data.sql
+    $self->_apply_base_data();
 
     # 3. Apply any patches in db/patches/*.sql that are
     #    not in db/dist/patches_applied.txt.
@@ -320,6 +322,10 @@ sub ACTION_dbdist {
     # 4. Dump the new schema out to db/dist/base.sql
     $self->_dump_base_sql();
     info "Wrote $dbdist/base.sql";
+
+    # 4.1 Dump any data out to db/dist/base_data.dump
+    $self->_dump_base_data();
+    info "Wrote $dbdist/base_data.sql";
 
     # 5. Stop the database.
     $self->_stop_db();
