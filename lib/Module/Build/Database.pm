@@ -418,6 +418,7 @@ sub ACTION_dbinstall {
         info "Fresh install.";
         $self->_create_database() or die "could not create database\n";
         $self->_apply_base_sql() or die "could not apply base sql\n";
+        $self->_apply_base_data() or die "could not apply base_data sql\n";
     }
 
     my %base_patches = $self->_read_patches_applied_file();
