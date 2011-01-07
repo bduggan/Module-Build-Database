@@ -201,7 +201,7 @@ sub _apply_base_sql {
 sub _apply_base_data {
     my $self = shift;
     my $filename = shift || $self->base_dir."/db/dist/base_data.sql";
-    return unless -e $filename;
+    return 1 unless -e $filename;
     info "applying base_data.sql";
     $self->_do_psql_file($filename);
 }
