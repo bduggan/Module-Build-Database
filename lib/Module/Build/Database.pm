@@ -437,7 +437,7 @@ sub ACTION_dbinstall {
     my $outfile = File::Temp->new(); $outfile->close;
     $self->_dump_patch_table(outfile => "$outfile");
     my %db_patches = $self->_read_patches_applied_file(filename => "$outfile");
-    for my $patch (keys %base_patches) {
+    for my $patch (sort keys %base_patches) {
         if (exists($db_patches{$patch})) {
             next if "@{$base_patches{$patch}}" eq "@{$db_patches{$patch}}";
             warn "patch $patch: @{$base_patches{$patch}} != @{$db_patches{$patch}}\n";
