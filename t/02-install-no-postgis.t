@@ -10,15 +10,14 @@ use FindBin;
 my @pg_version = `postgres --version` =~ / (\d+)\.(\d+)\.(\d+)$/m;
 
 unless ($pg_version[0] >= 8) {
-    plan skip_all => "postgres version $pg_version[0] must be >= 8";
+    plan skip_all => "postgres version must be >= 8.0";
 }
 
-unless ($pg_version[1] >= 4) {
-    plan skip_all => "postgres minor version $pg_version[1] must be >= 4";
+if ($pg_version[0]==8 && $pg_version[1] < 4) {
+    plan skip_all => "postgres version must be >= 8.4"
 }
 
 plan qw/no_plan/;
-
 
 my $debug = 0;
 
