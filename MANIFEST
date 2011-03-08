@@ -44,10 +44,20 @@ eg/PgappNoPostgis/db/patches/0030_three.sql
 eg/PgappNoPostgis/db/patches/0040_four.sql
 eg/PgappNoPostgis/db/patches/0050_five.sql
 eg/PgappNoPostgis/lib/Pgapp.pm
+eg/SqliteApp/Build.PL
+eg/SqliteApp/db/patches/0010_one.sql
+eg/SqliteApp/db/patches/0020_two.sql
+eg/SqliteApp/db/patches/0030_three.sql
+eg/SqliteApp/db/patches/0040_four.sql
+eg/SqliteApp/db/patches/0050_five.sql
+eg/SqliteApp/lib/SqliteApp.pm
 ignore.txt
 lib/Module/Build/Database.pm
+lib/Module/Build/Database/Helpers.pm
 lib/Module/Build/Database/PostgreSQL.pm
 lib/Module/Build/Database/PostgreSQL/Templates.pm
+lib/Module/Build/Database/SQLite.pm
+lib/Test/MBD.pm
 Makefile.PL
 MANIFEST			This list of files
 MANIFEST.SKIP
@@ -56,4 +66,5 @@ README
 t/00-load.t
 t/01-install-postgis.t
 t/02-install-no-postgis.t
+t/03-install-sqlite.t
 t/pod.t
