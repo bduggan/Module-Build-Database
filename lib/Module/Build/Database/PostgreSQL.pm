@@ -247,6 +247,7 @@ sub _dump_base_data {
     my $database_schema = $self->database_options('schema');
     my $database_name   = $self->database_options('name');
     do_system( $Bin{Pgdump}, "--data-only", "-xO", "-E", "utf8", "-n", $database_schema, $database_name,
+        "|", "egrep -v '^SET search_path'",
         ">", "$tmpfile" )
       or return 0;
     rename "$tmpfile", $outfile or die "rename failed: $!";
