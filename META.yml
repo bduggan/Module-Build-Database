@@ -18,11 +18,17 @@ name: Module-Build-Database
 provides:
   Module::Build::Database:
     file: lib/Module/Build/Database.pm
-    version: 0.13
+    version: 0.14
+  Module::Build::Database::Helpers:
+    file: lib/Module/Build/Database/Helpers.pm
   Module::Build::Database::PostgreSQL:
     file: lib/Module/Build/Database/PostgreSQL.pm
   Module::Build::Database::PostgreSQL::Templates:
     file: lib/Module/Build/Database/PostgreSQL/Templates.pm
+  Module::Build::Database::SQLite:
+    file: lib/Module/Build/Database/SQLite.pm
+  Test::MBD:
+    file: lib/Test/MBD.pm
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.13
+version: 0.14
