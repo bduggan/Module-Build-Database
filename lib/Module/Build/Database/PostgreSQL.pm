@@ -148,7 +148,7 @@ sub _start_new_db {
 
     my $pmlog = "$dbdir/postmaster.log";
     my $i = 0;
-    # NB: This technique is from Test::$Bin{Postgres}, but maybe easier is "pg_ctl -w start"
+    # NB: This technique is from Test::Postgres, but maybe easier is "pg_ctl -w start"
     while (! -e "$pmlog" or not grep /ready/, IO::File->new("<$pmlog")->getlines ) {
         debug "waiting for postgres to start..(log: $pmlog)";
         sleep 1;
