@@ -37,7 +37,7 @@ sub verify_bin {
             last if ($found = qx[which $potential_cmd 2>/dev/null]);
         }
         unless ($found) {
-            warn "could not find ".(join " or ",@look_for)." in current path\n" unless $label =~ /autodoc/;
+            warn "could not find ".(join " or ",@look_for)." in current path\n" unless $label =~ /doc/;
             $found = "/bin/false";
         }
         chomp $found;
