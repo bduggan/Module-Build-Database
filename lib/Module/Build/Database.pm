@@ -179,7 +179,7 @@ use strict;
 use Module::Build::Database::Helpers qw/debug info/;
 use base 'Module::Build';
 
-our $VERSION = '0.17';
+our $VERSION = '0.18';
 
 sub new {
     my $class = shift;
