@@ -351,7 +351,27 @@ sub _create_database {
 
     $self->_do_psql("alter database $database_name set search_path to $database_schema;");
 
-    $self->_do_psql("create procedural language plpgsql");
+    # stolen from http://wiki.postgresql.org/wiki/CREATE_OR_REPLACE_LANGUAGE
+    $self->_do_psql(<<'SAFE_MAKE_PLPGSQL');
+CREATE OR REPLACE FUNCTION make_plpgsql()
+RETURNS VOID
+LANGUAGE SQL
+AS $$
+CREATE LANGUAGE plpgsql;
+$$;
+
+SELECT
+    CASE
+    WHEN EXISTS(
+        SELECT 1
+        FROM pg_catalog.pg_language
+        WHERE lanname='plpgsql'
+    )
+    THEN NULL
+    ELSE make_plpgsql() END;
+
+DROP FUNCTION make_plpgsql();
+SAFE_MAKE_PLPGSQL
 
     if (my $postgis = $self->database_extensions('postgis')) {
         info "applying postgis extension";
