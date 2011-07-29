@@ -283,9 +283,15 @@ sub ACTION_dbtest {
 sub ACTION_dbclean {
     my $self = shift;
 
+    if (my $host = $self->notes("dbtest_host")) {
+        $self->_stop_db($host);
+        $self->_remove_db($host);
+    }
+
     # Remove any test databases created, stop any daemons.
-    $self->_cleanup_old_dbs(all => 1); # NB: this may conflict with other instances
+    $self->_cleanup_old_dbs; # NB: this may conflict with other running tests
     $self->notes(dbtest_host => "");
+    $self->notes(already_started => 0);
 }
 
 sub ACTION_dbdist {

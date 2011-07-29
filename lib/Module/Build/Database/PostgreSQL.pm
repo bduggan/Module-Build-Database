@@ -109,16 +109,18 @@ sub _cleanup_old_dbs {
     my $self = shift;
     my %args = @_; # pass all => 1 to clean up the current one too
 
-    my $tmpdir = tempdir("mbdtest_XXXXXX", TMPDIR => 1);
-    my $glob = $tmpdir;
+    my $glob;
+    {
+        my $tmpdir = tempdir("mbdtest_XXXXXX", TMPDIR => 1);
+        $glob = "$tmpdir";
+        rmtree($tmpdir);
+    }
     $glob =~ s/mbdtest_.*$/mbdtest_*/;
     for my $thisdir (glob $glob) {
-        next if $thisdir eq $tmpdir && !$args{all};
         debug "cleaning up old tmp instance : $thisdir";
         $self->_stop_db("$thisdir/db");
         rmtree($thisdir);
     }
-    rmtree $tmpdir;
 }
 
 sub _start_new_db {
@@ -163,7 +165,7 @@ sub _start_new_db {
 sub _remove_db {
     my $self = shift;
     return if $ENV{MBD_DONT_STOP_TEST_DB};
-    my $dbdir = $self->_tmp_db_dir();
+    my $dbdir = shift || $self->_tmp_db_dir();
     $dbdir =~ s/\/db$//;
     rmtree $dbdir;
 }
@@ -174,7 +176,7 @@ sub _stop_db {
     my $dbdir = shift || $self->_tmp_db_dir();
     my $pid_file = "$dbdir/postmaster.pid";
     unless (-e $pid_file) {
-        info "no pid file ($pid_file), not stopping db";
+        debug "no pid file ($pid_file), not stopping db";
         return;
     }
     my ($pid) = IO::File->new("<$pid_file")->getlines;
