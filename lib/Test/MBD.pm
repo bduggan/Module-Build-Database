@@ -18,7 +18,7 @@ sub start {
     my $mbd = Module::Build::Database->current;
     $mbd->notes( leave_running => 1 );
     $ENV{MBD_QUIET} = 1;
-    return if $mbd->notes("already_started");
+    return if $mbd->notes("already_started") && $mbd->notes("dbtest_host");
 
     $mbd->depends_on("dbtest"); # runs ACTION_dbtest
     $mbd->notes(already_started => 1);
