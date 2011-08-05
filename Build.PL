@@ -15,6 +15,7 @@ my $builder = Module::Build->new(
     },
     requires => {
         'DBD::SQLite' => 0,
+        'DBD::Pg'     => 0,
         'Digest::MD5' => 0,
         'File::Copy::Recursive' => 0,
         'Sub::Exporter' => 0,
