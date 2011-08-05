@@ -18,7 +18,7 @@ name: Module-Build-Database
 provides:
   Module::Build::Database:
     file: lib/Module/Build/Database.pm
-    version: 0.20
+    version: 0.21
   Module::Build::Database::Helpers:
     file: lib/Module/Build/Database/Helpers.pm
   Module::Build::Database::PostgreSQL:
@@ -29,6 +29,11 @@ provides:
     file: lib/Module/Build/Database/SQLite.pm
   Test::MBD:
     file: lib/Test/MBD.pm
+requires:
+  DBD::SQLite: 0
+  Digest::MD5: 0
+  File::Copy::Recursive: 0
+  Sub::Exporter: 0
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.20
+version: 0.21

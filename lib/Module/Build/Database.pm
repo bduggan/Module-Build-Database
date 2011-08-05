@@ -155,7 +155,7 @@ or dbinstall.
 =head1 NOTES
 
 Patches will be applied in lexicographic order, so their names should start
-with a sequence of digits, e.g.  0010_something.sql, 0020_something_else.sql, etc.
+with a sequence of digits, e.g.  0010_something.sql, 0.21_something_else.sql, etc.
 
 =head1 TODO
 
@@ -179,7 +179,7 @@ use strict;
 use Module::Build::Database::Helpers qw/debug info/;
 use base 'Module::Build';
 
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
 sub new {
     my $class = shift;
