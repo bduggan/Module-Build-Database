@@ -86,6 +86,14 @@ sub _do_psql_out {
 sub _do_psql_file {
     my $self = shift;
     my $filename = shift;
+    unless (-e $filename) {
+        warn "could not open file $filename";
+        return 0;
+    }
+    unless (-s $filename) {
+        warn "file $filename is empty";
+        return 0;
+    }
     my $database_name  = $self->database_options('name');
     # -q: quiet, ON_ERROR_STOP: throw exceptions
     do_system($Bin{Psql},"-q","-v'ON_ERROR_STOP=1'","-f",$filename, $database_name);

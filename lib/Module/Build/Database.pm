@@ -410,7 +410,7 @@ sub ACTION_dbfakeinstall {
     $self->_start_new_db();
     $self->_apply_base_sql("$existing_schema") # NB: contains patches_applied table
         or die "error with existing schema";
-    $self->_apply_patch($_) for @todo;
+    do { $self->_apply_patch($_) or die "patch $_ failed" } for @todo;
     $self->_remove_patches_applied_table();
     $self->_dump_base_sql(outfile => "$tmp");
     $self->_diff_files("$tmp", $self->base_dir. "/db/dist/base.sql")
