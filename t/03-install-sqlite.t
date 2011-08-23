@@ -55,7 +55,7 @@ TODO: {
 # my $out = `echo ".schema one" | sqlite3 sqlite_app.db`;
 #
 # diag $out;
-# chdir "$dir/..";
+chdir "$dir/..";
 
 1;
 
