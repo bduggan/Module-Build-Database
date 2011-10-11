@@ -125,6 +125,7 @@ sub _cleanup_old_dbs {
     }
     $glob =~ s/mbdtest_.*$/mbdtest_*/;
     for my $thisdir (glob $glob) {
+        next unless -d $thisdir && -w $thisdir;
         debug "cleaning up old tmp instance : $thisdir";
         $self->_stop_db("$thisdir/db");
         rmtree($thisdir);
