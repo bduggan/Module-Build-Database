@@ -18,7 +18,7 @@ name: Module-Build-Database
 provides:
   Module::Build::Database:
     file: lib/Module/Build/Database.pm
-    version: 0.24
+    version: 0.25
   Module::Build::Database::Helpers:
     file: lib/Module/Build/Database/Helpers.pm
   Module::Build::Database::PostgreSQL:
@@ -37,4 +37,4 @@ requires:
   Sub::Exporter: 0
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.24
+version: 0.25
