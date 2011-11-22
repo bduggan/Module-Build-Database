@@ -62,9 +62,7 @@ Makefile.PL
 MANIFEST			This list of files
 MANIFEST.SKIP
 META.yml
-out
 README
-schema.out
 t/00-load.t
 t/01-install-postgis.t
 t/02-install-no-postgis.t
