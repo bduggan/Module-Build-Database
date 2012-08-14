@@ -8,8 +8,9 @@ build_requires:
   IO::Socket::INET: 0
   Test::More: 0
 configure_requires:
-  Module::Build: 0.36
-generated_by: 'Module::Build version 0.3603'
+  Module::Build: 0.4
+dynamic_config: 1
+generated_by: 'Module::Build version 0.4, CPAN::Meta::Converter version 2.120921'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -18,17 +19,22 @@ name: Module-Build-Database
 provides:
   Module::Build::Database:
     file: lib/Module/Build/Database.pm
-    version: 0.26
+    version: 0.27
   Module::Build::Database::Helpers:
     file: lib/Module/Build/Database/Helpers.pm
+    version: 0
   Module::Build::Database::PostgreSQL:
     file: lib/Module/Build/Database/PostgreSQL.pm
+    version: 0
   Module::Build::Database::PostgreSQL::Templates:
     file: lib/Module/Build/Database/PostgreSQL/Templates.pm
+    version: 0
   Module::Build::Database::SQLite:
     file: lib/Module/Build/Database/SQLite.pm
+    version: 0
   Test::MBD:
     file: lib/Test/MBD.pm
+    version: 0
 requires:
   DBD::Pg: 0
   DBD::SQLite: 0
@@ -37,4 +43,4 @@ requires:
   Sub::Exporter: 0
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.26
+version: 0.27
