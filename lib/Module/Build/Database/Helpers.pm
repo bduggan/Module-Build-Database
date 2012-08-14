@@ -1,4 +1,5 @@
 package Module::Build::Database::Helpers;
+use File::Temp;
 use strict;
 use warnings;
 
@@ -23,6 +24,7 @@ sub do_system {
       or do {
         return 0 if $silent;
         warn "Error with '@_' : $? " . ( ${^CHILD_ERROR_NATIVE} || '' ) . "\n";
+        $File::Temp::KEEP_ALL = 1;
         return 0;
       };
     return 1;
