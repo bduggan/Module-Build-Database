@@ -357,6 +357,8 @@ sub ACTION_dbdocs {
 sub ACTION_dbfakeinstall {
     my $self = shift;
 
+    -e $self->base_dir.'/db/dist' or die "no db/dist dir, cannot fakeinstall";
+
     # 1. Look for a running database, based on environment variables.
     # 2. Display the connection information obtained from the above.
 
@@ -419,6 +421,8 @@ sub ACTION_dbfakeinstall {
 
 sub ACTION_dbinstall {
     my $self = shift;
+
+    -e $self->base_dir.'/db/dist' or die "no db/dist dir, cannot install";
 
     if ($self->_is_fresh_install()) {
         info "Fresh install.";
