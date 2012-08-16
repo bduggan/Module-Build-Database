@@ -164,8 +164,7 @@ errs on the side of cleaning up too much.
 
 =head1 SEE ALSO
 
-mbd-tool -- a command line tool for locating and installing database patches
-which are associated with Perl modules.
+L<Test::MBD>
 
 =cut
 

@@ -7,8 +7,15 @@ use File::Copy qw/copy/;
 use IO::Socket::INET;
 use FindBin;
 
-unless (-e "/util/share/postgresql/contrib/postgis.sql") {
-    plan skip_all => "No postgis.sql";
+my $pg = `which postgres`;
+
+$pg or do {
+       plan skip_all => "Cannot find postgres executable";
+   };
+
+my $postg = $ENV{TEST_POSTGIS_BASE} || "/util/share/postgresql/contrib/postgis.sql";
+unless (-d $postg) {
+    plan skip_all => "No postgis.sql, set TEST_POSTGIS_BASE=/usr/local/wherever to give a location";
 }
 
 my @pg_version = `postgres --version` =~ / (\d+)\.(\d+)\.(\d+)$/m;
@@ -44,7 +51,7 @@ chdir $dir;
 $ENV{PERL5LIB} = join ':', @INC;
 delete $ENV{MODULEBUILDRC};
 
-_sysok("perl Build.PL");
+_sysok("perl Build.PL --postgis_base=$postg");
 
 _sysok("./Build dbtest");
 

@@ -7,6 +7,12 @@ use File::Copy qw/copy/;
 use IO::Socket::INET;
 use FindBin;
 
+my $pg = `which postgres`;
+
+$pg or do {
+    plan skip_all => "Cannot find postgres executable";
+};
+
 my @pg_version = `postgres --version` =~ / (\d+)\.(\d+)\.(\d+)$/m;
 
 unless ($pg_version[0] >= 8) {
