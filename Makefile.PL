@@ -2,20 +2,20 @@
 use ExtUtils::MakeMaker;
 WriteMakefile
 (
-          'NAME' => 'Module::Build::Database',
-          'VERSION_FROM' => 'lib/Module/Build/Database.pm',
-          'PREREQ_PM' => {
-                           'DBD::Pg' => 0,
-                           'DBD::SQLite' => 0,
-                           'Digest::MD5' => 0,
-                           'File::Copy::Recursive' => 0,
-                           'File::Slurp' => 0,
-                           'IO::Socket::INET' => 0,
-                           'Sub::Exporter' => 0,
-                           'Test::More' => 0
-                         },
-          'INSTALLDIRS' => 'site',
-          'EXE_FILES' => [],
-          'PL_FILES' => {}
-        )
+  'NAME' => 'Module::Build::Database',
+  'VERSION_FROM' => 'lib/Module/Build/Database.pm',
+  'PREREQ_PM' => {
+                   'DBD::Pg' => 0,
+                   'DBD::SQLite' => 0,
+                   'Digest::MD5' => 0,
+                   'File::Copy::Recursive' => 0,
+                   'File::Slurp' => 0,
+                   'IO::Socket::INET' => 0,
+                   'Sub::Exporter' => 0,
+                   'Test::More' => 0
+                 },
+  'INSTALLDIRS' => 'site',
+  'EXE_FILES' => [],
+  'PL_FILES' => {}
+)
 ;
