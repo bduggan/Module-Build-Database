@@ -135,6 +135,16 @@ sub _do_sqlite_into_file {
     $self->_do_sqlite($sql,$filename);
 }
 
+sub _do_sqlite_getlines {
+    my $self = shift;
+    my $sql      = shift;
+    my $filename = File::Temp->new();
+    debug "doing $sql";
+    $self->_do_sqlite($sql,$filename);
+    my @result = $filename->getlines;
+    return @result;
+}
+
 sub _apply_base_sql {
     my $self = shift;
     my $filename = shift || $self->base_dir."/db/dist/base.sql";
@@ -190,11 +200,14 @@ sub _dump_base_data {
         TEMPLATE => (dirname $outfile)."/dump_XXXXXX",
         UNLINK   => 0
     );
-    $tmpfile->close;
     debug "dumping base_data.sql";
 
-    # XXX this needs work; won't work for dbfakeinstall
-    $self->_do_sqlite(qq[.output $tmpfile\n.dump\n.exit\n]);
+    my ($tables) = $self->_do_sqlite_getlines(qq[.tables]);
+    for my $table (split /\s+/, $tables) {
+        my $more = File::Temp->new();
+        $self->_do_sqlite(qq[.output $more\n.mode insert $table\nselect * from $table;\n.exit\n]);
+        $tmpfile->print($_) for $more->getlines;
+    }
     rename "$tmpfile", $outfile or die "rename failed: $!";
 }
 

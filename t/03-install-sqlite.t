@@ -9,7 +9,7 @@ use FindBin;
 use lib $FindBin::Bin.'/tlib';
 use misc qw/sysok/;
 
-my $debug = 0;
+my $debug = $ENV{MBD_DEBUG} || 0;
 
 my $dir = tempdir( CLEANUP => !$debug);
 my $src_dir = "$FindBin::Bin/../eg/SqliteApp";
