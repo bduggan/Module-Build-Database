@@ -69,3 +69,4 @@ t/01-install-postgis.t
 t/02-install-no-postgis.t
 t/03-install-sqlite.t
 t/pod.t
+t/tlib/misc.pm
