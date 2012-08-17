@@ -7,6 +7,9 @@ use File::Copy qw/copy/;
 use IO::Socket::INET;
 use FindBin;
 
+use lib $FindBin::Bin.'/tlib';
+use misc qw/sysok/;
+
 my $pg = `which postgres`;
 
 $pg or do {
@@ -27,15 +30,6 @@ plan qw/no_plan/;
 
 my $debug = 0;
 
-sub _sysok {
-    my $cmd = shift;
-    my $log = File::Temp->new();  $log->close;
-    ok system($cmd . " > $log 2>&1")==0, "$cmd" or do {
-        copy "$log", "$log.$$" or die "copy failed: $!";
-        diag "$cmd failed : $? ".(${^CHILD_ERROR_NATIVE} || '')." see $log.$$";
-    };
-}
-
 my $dir = tempdir( CLEANUP => !$debug);
 my $src_dir = "$FindBin::Bin/../eg/PgappNoPostgis";
 mkpath "$dir/db/patches";
@@ -46,11 +40,11 @@ chdir $dir;
 delete $ENV{MODULEBUILDRC};
 $ENV{PERL5LIB} = join ':', @INC;
 
-_sysok("perl Build.PL");
+sysok("perl Build.PL");
 
-_sysok("./Build dbtest");
+sysok("./Build dbtest");
 
-_sysok("./Build dbdist");
+sysok("./Build dbdist");
 
 ok -e "$dir/db/dist/base.sql", "created base.sql";
 ok -e "$dir/db/dist/patches_applied.txt", "created patches_applied.txt";
@@ -79,24 +73,24 @@ $ENV{PGHOST} = "$dbdir";
 $ENV{PGDATA} = "$dbdir";
 $ENV{PGDATABASE} = "scooby";
 
-_sysok("initdb -D $dbdir");
+sysok("initdb -D $dbdir");
 
 open my $fp, ">> $dbdir/postgresql.conf" or die $!;
 print {$fp} qq[unix_socket_directory = '$dbdir'\n];
 close $fp or die $!;
 
-_sysok("pg_ctl -w start");
+sysok("pg_ctl -w start");
 
-_sysok("./Build dbfakeinstall");
+sysok("./Build dbfakeinstall");
 
-_sysok("./Build dbinstall");
+sysok("./Build dbinstall");
 
 my $out = `psql -c "\\d one"`;
 
 like $out, qr/table.*doo\.one/i, "made table one in schema doo";
 like $out, qr/x.*integer/, "made column x type integer";
 
-_sysok("pg_ctl -D $dbdir stop") unless $debug;
+sysok("pg_ctl -D $dbdir stop") unless $debug;
 
 chdir '..'; # otherwise file::temp can't clean up
 

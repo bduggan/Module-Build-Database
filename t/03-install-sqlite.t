@@ -6,16 +6,10 @@ use File::Path qw/mkpath/;
 use File::Copy qw/copy/;
 use FindBin;
 
-my $debug = 0;
+use lib $FindBin::Bin.'/tlib';
+use misc qw/sysok/;
 
-sub _sysok {
-    my $cmd = shift;
-    my $log = File::Temp->new();  $log->close;
-    ok system($cmd . " > $log 2>&1")==0, "$cmd" or do {
-        copy "$log", "$log.$$" or die "copy failed: $!";
-        diag "$cmd failed : $? ".(${^CHILD_ERROR_NATIVE} || '')." see $log.$$";
-    };
-}
+my $debug = 0;
 
 my $dir = tempdir( CLEANUP => !$debug);
 my $src_dir = "$FindBin::Bin/../eg/SqliteApp";
@@ -27,11 +21,11 @@ chdir $dir;
 delete $ENV{MODULEBUILDRC};
 $ENV{PERL5LIB} = join ':', @INC;
 
-_sysok("perl Build.PL");
+sysok("perl Build.PL");
 
-_sysok("./Build dbtest");
+sysok("./Build dbtest");
 
-_sysok("./Build dbdist");
+sysok("./Build dbdist");
 
 ok -e "$dir/db/dist/base.sql", "created base.sql";
 ok -e "$dir/db/dist/patches_applied.txt", "created patches_applied.txt";
@@ -42,12 +36,9 @@ ok -e "$dir/db/dist/patches_applied.txt", "created patches_applied.txt";
 my $tmpdir = tempdir(CLEANUP => 0);
 my $dbdir  = "$tmpdir/dbtest";
 
-_sysok("./Build dbfakeinstall");
+sysok("./Build dbfakeinstall");
 
-TODO: {
-    local $TODO = "fix sqlite";
-    _sysok("./Build dbinstall");
-}
+sysok("./Build dbinstall");
 
 #
 # TODO: sqlite support needs work.
