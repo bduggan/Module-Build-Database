@@ -37,10 +37,7 @@ copy "$src_dir/Build.PL", $dir;
 copy "$src_dir/db/patches/0010_one.sql","$dir/db/patches";
 chdir $dir;
 
-delete $ENV{MODULEBUILDRC};
-$ENV{PERL5LIB} = join ':', @INC;
-
-sysok("perl Build.PL");
+sysok("perl -Mblib=$FindBin::Bin/../blib Build.PL");
 
 sysok("./Build dbtest");
 
