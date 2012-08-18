@@ -1,8 +1,11 @@
 Revision history for Module-Build-Database
 
 0.28    Thu Aug 16 12:50:42 EDT 2012
-        First release
+        First release.
 
 0.29    Fri Aug 17 10:12:47 EDT 2012
         Improved SQLite support.
+
+0.30    Sat Aug 18 19:05:16 EDT 2012
+        Improved tests.
 
