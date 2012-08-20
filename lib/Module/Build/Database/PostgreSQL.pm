@@ -159,8 +159,9 @@ sub _start_new_db {
 
     my $pmlog = "$dbdir/postmaster.log";
     my $i = 0;
-    # NB: This technique is from Test::Postgres, but maybe easier is "pg_ctl -w start"
-    while (! -e "$pmlog" or not grep /ready/, IO::File->new("<$pmlog")->getlines ) {
+    # NB: Maybe easier is "pg_ctl -w start"
+    my $domain = $dbdir.'/.s.PGSQL.5432';
+    while (! -e $domain ) {
         debug "waiting for postgres to start..(log: $pmlog)";
         sleep 1;
         last if $ENV{MBD_FAKE};
@@ -425,7 +426,7 @@ sub _generate_docs {
     do_system( $Bin{Pgdoc}, "-d", $database_name, "-s", $database_schema, "-l .", "-t html" );
     do_system( $Bin{Pgdoc}, "-d", $database_name, "-s", $database_schema, "-l .", "-t dot" );
 
-    for my $type qw(pod html) {
+    for my $type (qw(pod html)) {
         my $fp = IO::File->new("<$database_name.$type") or die $!;
         mkdir $type or die $!;
         my $outfp;
