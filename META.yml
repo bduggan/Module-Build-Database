@@ -19,7 +19,7 @@ name: Module-Build-Database
 provides:
   Module::Build::Database:
     file: lib/Module/Build/Database.pm
-    version: 0.31
+    version: 0.32
   Module::Build::Database::Helpers:
     file: lib/Module/Build/Database/Helpers.pm
     version: 0
@@ -43,4 +43,4 @@ requires:
   Sub::Exporter: 0
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.31
+version: 0.32
