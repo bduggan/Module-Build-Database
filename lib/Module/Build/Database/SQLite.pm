@@ -15,6 +15,10 @@ Module::Build::Database::SQLite
 
 SQLite driver for Module::Build::Database.
 
+=head1 METHODS
+
+=over
+
 =cut
 
 package Module::Build::Database::SQLite;
@@ -36,6 +40,17 @@ our %Bin = (
     Sqlite => 'sqlite3'
 );
 verify_bin(\%Bin);
+
+=item have_db_cli
+
+Is there a command line interface for sqlite available
+in the current PATH?
+
+=cut
+
+sub have_db_cli {
+    return $Bin{Sqlite} && $Bin{Sqlite} !~ qr[/bin/false] ? 1 : 0;
+}
 
 sub _show_live_db {
     my $self = shift;
@@ -220,6 +235,13 @@ sub _remove_db {
     unlink "$dbFile" or die "Could not unlink $dbFile :$!";
 }
 
+=back
+
+=head1 SEE ALSO
+
+See L<Module::Build::Database>.
+
+=cut
 
 1;
 

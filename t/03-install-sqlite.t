@@ -1,10 +1,14 @@
 #!perl
 
-use Test::More tests => 7;
+use Test::More;
 use File::Temp qw/tempdir/;
 use File::Path qw/mkpath/;
 use File::Copy qw/copy/;
+use Module::Build::Database::SQLite;
 use FindBin;
+
+plan skip_all => "no sqlite executable"
+    unless Module::Build::Database::SQLite->have_db_cli;
 
 use lib $FindBin::Bin.'/tlib';
 use misc qw/sysok/;
@@ -44,6 +48,8 @@ sysok("./Build dbinstall");
 #
 # diag $out;
 chdir "$dir/..";
+
+done_testing();
 
 1;
 
