@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Module::Build;
+use Module::Build 0.31;
 
 my $builder = Module::Build->new(
     module_name         => 'Module::Build::Database',
