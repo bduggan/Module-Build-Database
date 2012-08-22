@@ -10,7 +10,10 @@ Revision history for Module-Build-Database
         Improved tests.
 
 0.31    Mon Aug 20 17:09:07 EDT 2012
-        check for unix domain socket instead
+        Check for unix domain socket instead
         of using postgres log to see if the
         server has started.
+
+0.32   Wed Aug 22 10:40:06 EDT 2012
+       More test improvements.
 
