@@ -12,7 +12,8 @@ WriteMakefile
                    'File::Slurp' => 0,
                    'IO::Socket::INET' => 0,
                    'Sub::Exporter' => 0,
-                   'Test::More' => 0
+                   'Test::More' => 0,
+                   'blib' => 0
                  },
   'INSTALLDIRS' => 'site',
   'EXE_FILES' => [],

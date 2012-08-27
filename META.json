@@ -33,14 +33,15 @@
             "DBD::SQLite" : "0",
             "Digest::MD5" : "0",
             "File::Copy::Recursive" : "0",
-            "Sub::Exporter" : "0"
+            "Sub::Exporter" : "0",
+            "blib" : "0"
          }
       }
    },
    "provides" : {
       "Module::Build::Database" : {
          "file" : "lib/Module/Build/Database.pm",
-         "version" : "0.32"
+         "version" : "0.33"
       },
       "Module::Build::Database::Helpers" : {
          "file" : "lib/Module/Build/Database/Helpers.pm",
@@ -69,5 +70,5 @@
          "http://dev.perl.org/licenses/"
       ]
    },
-   "version" : "0.32"
+   "version" : "0.33"
 }
