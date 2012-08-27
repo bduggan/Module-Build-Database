@@ -17,3 +17,6 @@ Revision history for Module-Build-Database
 0.32   Wed Aug 22 10:40:06 EDT 2012
        More test improvements.
 
+0.33   Mon Aug 27 10:52:34 EDT 2012
+       Improved prerequisite list.
+

@@ -19,6 +19,7 @@ my $builder = Module::Build->new(
         'Digest::MD5' => 0,
         'File::Copy::Recursive' => 0,
         'Sub::Exporter' => 0,
+        'blib'          => 0,
     },
     add_to_cleanup      => [ 'Module-Build-Database-*' ],
     create_makefile_pl => 'traditional',
