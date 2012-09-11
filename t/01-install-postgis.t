@@ -16,6 +16,10 @@ $pg or do {
        plan skip_all => "Cannot find postgres executable";
    };
 
+$> or do {
+    plan skip_all => "Cannot test postgres as root";
+};
+
 my $postg = $ENV{TEST_POSTGIS_BASE} || "/util/share/postgresql/contrib/postgis.sql";
 unless (-d $postg) {
     plan skip_all => "No postgis.sql, set TEST_POSTGIS_BASE=/usr/local/wherever to give a location";

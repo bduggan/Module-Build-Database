@@ -16,6 +16,10 @@ $pg or do {
     plan skip_all => "Cannot find postgres executable";
 };
 
+$> or do {
+    plan skip_all => "Cannot test postgres as root";
+};
+
 my @pg_version = `postgres --version` =~ / (\d+)\.(\d+)\.(\d+)$/m;
 
 unless ($pg_version[0] >= 8) {
