@@ -158,7 +158,7 @@ sub _start_new_db {
     my $pmopts = qq[-k $dbdir -h '' -c silent_mode=on -p 5432];
 
     warn "# starting postgres in $dbdir";
-    do_system($Bin{Pgctl}, qq[-o "$pmopts"], "-w", "-D", "$dbdir", "start") or die "could not start postgres";
+    do_system($Bin{Pgctl}, qq[-o "$pmopts"], "-w", "-t", 120, "-D", "$dbdir", "start") or die "could not start postgres";
 
     my $domain = $dbdir.'/.s.PGSQL.5432';
     -e $domain or die "could not find $domain";

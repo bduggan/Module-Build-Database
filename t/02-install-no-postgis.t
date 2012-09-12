@@ -68,7 +68,7 @@ open my $fp, ">> $dbdir/postgresql.conf" or die $!;
 print {$fp} qq[unix_socket_directory = '$dbdir'\n];
 close $fp or die $!;
 
-sysok(qq[pg_ctl -o "-h ''" -w start]);
+sysok(qq[pg_ctl -t 120 -o "-h ''" -w start]);
 
 sysok("./Build dbfakeinstall");
 
