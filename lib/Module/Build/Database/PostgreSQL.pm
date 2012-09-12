@@ -58,6 +58,7 @@ __PACKAGE__->add_property(leave_running       => default => 0 ); # leave running
 # Binaries used by this module.  They should be in $ENV{PATH}.
 our %Bin = (
     Psql       => 'psql',
+    Pgctl      => 'pg_ctl',
     Postgres   => 'postgres',
     Initdb     => 'initdb',
     Createdb   => 'createdb',
@@ -154,19 +155,13 @@ sub _start_new_db {
 
     do_system($Bin{Initdb}, "-D", "$dbdir", ">>", "$initlog", "2>&1") or die "could not initdb";
 
-    do_system($Bin{Postgres}, "-D", "$dbdir", "-k", "$dbdir", "-h ''", "-c silent_mode=on")
-        or die "could not start postgres";
+    my $pmopts = qq[-k $dbdir -h '' -c silent_mode=on -p 5432];
 
-    my $pmlog = "$dbdir/postmaster.log";
-    my $i = 0;
-    # NB: Maybe easier is "pg_ctl -w start"
+    warn "# starting postgres in $dbdir";
+    do_system($Bin{Pgctl}, qq[-o "$pmopts"], "-w", "-D", "$dbdir", "start") or die "could not start postgres";
+
     my $domain = $dbdir.'/.s.PGSQL.5432';
-    while (! -e $domain ) {
-        debug "waiting for postgres to start..(log: $pmlog)";
-        sleep 1;
-        last if $ENV{MBD_FAKE};
-        die "postgres did not start, see $pmlog" if ++$i > 30;
-    }
+    -e $domain or die "could not find $domain";
 
     $self->_create_database();
     return $self->_dbhost;

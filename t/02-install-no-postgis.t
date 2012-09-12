@@ -38,6 +38,7 @@ my $dir = tempdir( CLEANUP => !$debug);
 my $src_dir = "$FindBin::Bin/../eg/PgappNoPostgis";
 mkpath "$dir/db/patches";
 copy "$src_dir/Build.PL", $dir;
+copy "$src_dir/MANIFEST", $dir;
 copy "$src_dir/db/patches/0010_one.sql","$dir/db/patches";
 chdir $dir;
 

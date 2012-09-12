@@ -8,7 +8,9 @@ my $builder = Module::Build::Database->new(
               schema => "doo",
           },
           module_name => "PgappNoPostgis",
+          dist_abstract => "foo",
           dist_version => "0.1010101",
+          dist_author => "someone",
           license => "perl",
 );
 
