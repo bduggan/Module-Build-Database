@@ -20,3 +20,5 @@ Revision history for Module-Build-Database
 0.33   Mon Aug 27 10:52:34 EDT 2012
        Improved prerequisite list.
 
+0.34   Wed Sep 12 08:05:37 EDT 2012
+       Skip tests when run as root
