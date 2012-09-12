@@ -21,4 +21,7 @@ Revision history for Module-Build-Database
        Improved prerequisite list.
 
 0.34   Wed Sep 12 08:05:37 EDT 2012
-       Skip tests when run as root
+       Skip tests when run as root.
+
+0.35   Wed Sep 12 12:06:28 EDT 2012
+       Use pg_ctl instead of postgres executable.
