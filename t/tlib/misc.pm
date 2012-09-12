@@ -13,8 +13,7 @@ use strict;
 sub sysok {
     my $cmd = shift;
     my $log = File::Temp->new();
-    #ok system($cmd . " > $log 2>&1")==0, "$cmd" or do {
-    ok system($cmd)==0, "$cmd" or do {
+    ok system($cmd . " > $log 2>&1")==0, "$cmd" or do {
         diag "$cmd failed : $? ".(${^CHILD_ERROR_NATIVE} || '');
         diag $_ for $log->getlines;
     };

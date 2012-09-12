@@ -57,20 +57,7 @@ ok -e "$dir/db/dist/patches_applied.txt", "created patches_applied.txt";
 my $tmpdir = tempdir(CLEANUP => 0);
 my $dbdir  = "$tmpdir/dbtest";
 
-# find a free port
-my $port = 9999;
-
-while ($port < 10100 and
-       !IO::Socket::INET->new(Listen    => 5,
-                 LocalAddr => 'localhost',
-                 LocalPort => $port,
-                 Proto     => 'tcp') ) {
-    $port ++
-}
-
-diag "using local port $port";
-
-$ENV{PGPORT} = $port;
+$ENV{PGPORT} = 5432;
 $ENV{PGHOST} = "$dbdir";
 $ENV{PGDATA} = "$dbdir";
 $ENV{PGDATABASE} = "scooby";
@@ -81,7 +68,7 @@ open my $fp, ">> $dbdir/postgresql.conf" or die $!;
 print {$fp} qq[unix_socket_directory = '$dbdir'\n];
 close $fp or die $!;
 
-sysok("pg_ctl -w start");
+sysok(qq[pg_ctl -o "-h ''" -w start]);
 
 sysok("./Build dbfakeinstall");
 
@@ -92,7 +79,7 @@ my $out = `psql -c "\\d one"`;
 like $out, qr/table.*doo\.one/i, "made table one in schema doo";
 like $out, qr/x.*integer/, "made column x type integer";
 
-sysok("pg_ctl -D $dbdir stop") unless $debug;
+sysok("pg_ctl -D $dbdir -m immediate stop") unless $debug;
 
 chdir '..'; # otherwise file::temp can't clean up
 
