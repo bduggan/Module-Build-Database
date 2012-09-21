@@ -150,6 +150,18 @@ or dbinstall.
  2. Apply any patches in db/dist/patches_applied.txt that are not in the patches_applied table.
  3. Add an entry to the patches_applied table for each patch applied.
 
+=item dbplant
+
+ 1. Starts a test database based on base.sql and any patches (see dbtest)
+ 2. Calls plant() in L<Rose::Planter>. to generate a static object hierarchy.
+ 3. Stops the test database.
+
+Note that by default '::Objects' will be appended to the name of the module
+being disttributed, and this will be used as the object class.
+To change this, set database_object_class may be given in Build.PL (or as
+a command line option).  The directory name will be formed by prepending
+'lib' and appending 'autolib', i.e. ./lib/MyModule/Objects/autolib.
+
 =back
 
 =head1 NOTES
@@ -179,6 +191,8 @@ use Module::Build::Database::Helpers qw/debug info/;
 use base 'Module::Build';
 
 our $VERSION = '0.35';
+
+__PACKAGE__->add_property(database_object_class => default => "");
 
 sub new {
     my $class = shift;
@@ -456,6 +470,31 @@ sub ACTION_dbinstall {
         $self->_apply_patch($patch) or die "error applying $patch";
         $self->_insert_patch_record($base_patches{$patch});
     }
+}
+
+sub ACTION_dbplant {
+    my $self = shift;
+    # TODO, this uses a live db, needs to start a test db.
+    eval {
+        require Rose::Planter;
+    };
+    if ($@) {
+        die "Rose::Planter not found, install it to run dbplant";
+    }
+    $self->notes(leave_running => 1);
+    $self->depends_on('dbtest'); # run dbtest
+    my $obj_class = $self->database_object_class;
+    unless ($obj_class) {
+        $obj_class = join '::', $self->module_name, 'Objects';
+        info "Using default database_object_class : $obj_class";
+    }
+    my $autodir = $obj_class;
+    $autodir =~ s[::][/]g;
+    $autodir .= '/autolib';
+    $autodir = 'lib/'.$autodir;
+    info "Writing to $autodir";
+    Rose::Planter->plant($obj_class => $autodir);
+    $self->depends_on('dbclean');
 }
 
 1;

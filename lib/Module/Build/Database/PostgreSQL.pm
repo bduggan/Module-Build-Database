@@ -157,7 +157,7 @@ sub _start_new_db {
 
     my $pmopts = qq[-k $dbdir -h '' -c silent_mode=on -p 5432];
 
-    warn "# starting postgres in $dbdir";
+    debug "# starting postgres in $dbdir";
     do_system($Bin{Pgctl}, qq[-o "$pmopts"], "-w", "-t", 120, "-D", "$dbdir", "start") or die "could not start postgres";
 
     my $domain = $dbdir.'/.s.PGSQL.5432';
@@ -187,13 +187,8 @@ sub _stop_db {
     my ($pid) = IO::File->new("<$pid_file")->getlines;
     chomp $pid;
     kill "TERM", $pid;
-    my $i = 2;
-    while ($i < 10 ) {
-        sleep $i++;
-        return unless kill 0, $pid;
-        info "waiting for pid $pid to stop";
-    }
-    info "db didn't stop, forcing shutdown";
+    sleep 1;
+    return unless kill 0, $pid;
     kill 9, $pid or info "could not send signal to $pid";
 }
 
