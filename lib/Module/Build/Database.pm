@@ -156,11 +156,11 @@ or dbinstall.
  2. Calls plant() in L<Rose::Planter>. to generate a static object hierarchy.
  3. Stops the test database.
 
-Note that by default '::Objects' will be appended to the name of the module
-being disttributed, and this will be used as the object class.
-To change this, set database_object_class may be given in Build.PL (or as
-a command line option).  The directory name will be formed by prepending
-'lib' and appending 'autolib', i.e. ./lib/MyModule/Objects/autolib.
+The default name of the object class will be formed by appending
+'::Objects' to the name of the module.  This may be overridden
+by setting the build property 'database_object_class'.  The directory
+name will be formed by prepending 'lib' and appending
+'autolib', e.g. ./lib/MyModule/Objects/autolib.
 
 =back
 
