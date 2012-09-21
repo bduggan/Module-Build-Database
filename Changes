@@ -25,3 +25,7 @@ Revision history for Module-Build-Database
 
 0.35   Wed Sep 12 12:06:28 EDT 2012
        Use pg_ctl instead of postgres executable.
+
+0.36   Fri Sep 21 12:03:24 EDT 2012
+       dbplant
+       strip schema name in alter statements
