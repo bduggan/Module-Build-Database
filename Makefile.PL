@@ -11,6 +11,7 @@ WriteMakefile
                    'File::Copy::Recursive' => 0,
                    'File::Slurp' => 0,
                    'IO::Socket::INET' => 0,
+                   'List::MoreUtils' => 0,
                    'Sub::Exporter' => 0,
                    'Test::More' => 0,
                    'blib' => 0
