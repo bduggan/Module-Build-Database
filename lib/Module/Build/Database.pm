@@ -184,6 +184,7 @@ package Module::Build::Database;
 use File::Basename qw/basename/;
 use File::Path qw/mkpath/;
 use Digest::MD5;
+use List::MoreUtils qw/uniq/;
 use warnings;
 use strict;
 
@@ -495,6 +496,10 @@ sub ACTION_dbplant {
     info "Writing to $autodir";
     Rose::Planter->plant($obj_class => $autodir);
     $self->depends_on('dbclean');
+}
+
+sub hash_properties {
+    uniq(Module::Build->hash_properties, shift->SUPER::hash_properties);
 }
 
 1;

@@ -20,6 +20,7 @@ my $builder = Module::Build->new(
         'File::Copy::Recursive' => 0,
         'Sub::Exporter' => 0,
         'blib'          => 0,
+        'More::Utils'   => 0,
     },
     add_to_cleanup      => [ 'Module-Build-Database-*' ],
     create_makefile_pl => 'traditional',
