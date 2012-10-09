@@ -174,6 +174,14 @@ with a sequence of digits, e.g.  0010_something.sql, 0020_something_else.sql, et
 Allow dbclean to not interfere with other running mbd-test databases.  Currently it
 errs on the side of cleaning up too much.
 
+=head1 AUTHORS
+
+ Brian Duggan
+
+ Graham Ollis
+
+ Curt Tilmes
+
 =head1 SEE ALSO
 
 L<Test::MBD>
