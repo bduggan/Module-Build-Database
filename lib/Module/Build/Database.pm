@@ -474,7 +474,6 @@ sub ACTION_dbinstall {
 
 sub ACTION_dbplant {
     my $self = shift;
-    # TODO, this uses a live db, needs to start a test db.
     eval {
         require Rose::Planter;
     };
@@ -491,8 +490,10 @@ sub ACTION_dbplant {
     my $autodir = $obj_class;
     $autodir =~ s[::][/]g;
     $autodir .= '/autolib';
-    $autodir = 'lib/'.$autodir;
+    $autodir = './lib/'.$autodir;
     info "Writing to $autodir";
+    unshift @INC, './lib';
+    $ENV{HARNESS_ACTIVE} = 1;
     Rose::Planter->plant($obj_class => $autodir);
     $self->depends_on('dbclean');
 }
