@@ -169,18 +169,18 @@ name will be formed by prepending 'lib' and appending
 Patches will be applied in lexicographic order, so their names should start
 with a sequence of digits, e.g.  0010_something.sql, 0020_something_else.sql, etc.
 
-=head1 TODO
-
-Allow dbclean to not interfere with other running mbd-test databases.  Currently it
-errs on the side of cleaning up too much.
-
-=head1 AUTHORS
+=head1 AUTHOR
 
  Brian Duggan
 
  Graham Ollis
 
  Curt Tilmes
+
+=head1 TODO
+
+Allow dbclean to not interfere with other running mbd-test databases.  Currently it
+errs on the side of cleaning up too much.
 
 =head1 SEE ALSO
 
@@ -199,7 +199,7 @@ use strict;
 use Module::Build::Database::Helpers qw/debug info/;
 use base 'Module::Build';
 
-our $VERSION = '0.37';
+our $VERSION = '0.38';
 
 __PACKAGE__->add_property(database_object_class => default => "");
 
@@ -483,7 +483,6 @@ sub ACTION_dbinstall {
 
 sub ACTION_dbplant {
     my $self = shift;
-    # TODO, this uses a live db, needs to start a test db.
     eval {
         require Rose::Planter;
     };
@@ -500,8 +499,10 @@ sub ACTION_dbplant {
     my $autodir = $obj_class;
     $autodir =~ s[::][/]g;
     $autodir .= '/autolib';
-    $autodir = 'lib/'.$autodir;
+    $autodir = './lib/'.$autodir;
     info "Writing to $autodir";
+    unshift @INC, './lib';
+    $ENV{HARNESS_ACTIVE} = 1;
     Rose::Planter->plant($obj_class => $autodir);
     $self->depends_on('dbclean');
 }
