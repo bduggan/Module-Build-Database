@@ -29,3 +29,6 @@ Revision history for Module-Build-Database
 0.36   Fri Sep 21 12:03:24 EDT 2012
        dbplant
        strip schema name in alter statements
+
+0.37   Tue Oct 16 14:58:56 EDT 2012
+       dbplant fixes
