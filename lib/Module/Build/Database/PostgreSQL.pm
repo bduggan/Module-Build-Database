@@ -6,19 +6,19 @@ Module::Build::Database::PostgreSQL
 
 In Build.PL :
 
-my $builder = Module::Build::Database->new(
-    database_type => "PostgreSQL",
-    database_options => {
-        name   => "my_database_name",
-        schema => "my_schema_name",
-    },
-    database_extensions => {
-        postgis   => {
-            schema => "public",
-            # postgis.sql and spatial_ref_sys.sql should be under postgis_base (below)
-        },
-    },
-);
+ my $builder = Module::Build::Database->new(
+     database_type => "PostgreSQL",
+     database_options => {
+         name   => "my_database_name",
+         schema => "my_schema_name",
+     },
+     database_extensions => {
+         postgis   => {
+             schema => "public",
+             # postgis.sql and spatial_ref_sys.sql should be under postgis_base (below)
+         },
+     },
+ );
 
  perl Build.PL --postgis_base=/util/share/postgresql/contrib
 
@@ -28,11 +28,12 @@ Postgres driver for Module::Build::Database.
 
 =head1 NOTES
 
-The environment variables used by psql will
-PGUSER, PGHOST, PGPORT will be used when
-connecting to a live database (for install
-and fakeinstall).  PGDATABASE will be ignored:
-the name of the database should be given in Build.PL.
+The environment variables understood by C<psql>:
+C<PGUSER>, C<PGHOST> and C<PGPORT> will be used when
+connecting to a live database (for C<install> and
+C<fakeinstall>).  C<PGDATABASE> will be ignored;
+the name of the database should be specified in 
+Build.PL instead.
 
 =cut
 
