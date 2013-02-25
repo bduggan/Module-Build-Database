@@ -1,5 +1,8 @@
 Revision history for Module-Build-Database
 
+0.40   Mon Feb 25 09:00:56 EST 2013
+       Documentation fixups (gollis)
+
 0.39   Fri Oct 26 09:52:24 EDT 2012
        no silent_mode in postgres 9.2 (gollis)
 
