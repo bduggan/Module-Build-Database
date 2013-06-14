@@ -11,6 +11,7 @@ In Build.PL :
      database_options => {
          name   => "my_database_name",
          schema => "my_schema_name",
+         append_to_conf => "text to add to postgresql.conf",
      },
      database_extensions => {
          postgis   => {
@@ -155,6 +156,13 @@ sub _start_new_db {
     debug "initializing database (log: $initlog)";
 
     do_system($Bin{Initdb}, "-D", "$dbdir", ">>", "$initlog", "2>&1") or die "could not initdb";
+
+    if (my $conf_append = $self->database_options('append_to_conf')) {
+        die "cannot find postgresql.conf" unless -e "$dbdir/postgresql.conf";
+        open my $fp, ">> $dbdir/postgresql.conf" or die "could not open postgresql.conf : $!";
+        print $fp $conf_append;
+        close $fp;
+    }
 
     my $pmopts = qq[-k $dbdir -h '' -p 5432];
 
