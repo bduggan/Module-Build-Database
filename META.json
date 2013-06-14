@@ -4,7 +4,7 @@
       "Brian Duggan <brian.duggan@nasa.gov>"
    ],
    "dynamic_config" : 1,
-   "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.112621",
+   "generated_by" : "Module::Build version 0.4005, CPAN::Meta::Converter version 2.120630",
    "license" : [
       "perl_5"
    ],
@@ -16,10 +16,10 @@
    "prereqs" : {
       "build" : {
          "requires" : {
-            "File::Copy::Recursive" : 0,
-            "File::Slurp" : 0,
-            "IO::Socket::INET" : 0,
-            "Test::More" : 0
+            "File::Copy::Recursive" : "0",
+            "File::Slurp" : "0",
+            "IO::Socket::INET" : "0",
+            "Test::More" : "0"
          }
       },
       "configure" : {
@@ -29,20 +29,20 @@
       },
       "runtime" : {
          "requires" : {
-            "DBD::Pg" : 0,
-            "DBD::SQLite" : 0,
-            "Digest::MD5" : 0,
-            "File::Copy::Recursive" : 0,
-            "List::MoreUtils" : 0,
-            "Sub::Exporter" : 0,
-            "blib" : 0
+            "DBD::Pg" : "0",
+            "DBD::SQLite" : "0",
+            "Digest::MD5" : "0",
+            "File::Copy::Recursive" : "0",
+            "List::MoreUtils" : "0",
+            "Sub::Exporter" : "0",
+            "blib" : "0"
          }
       }
    },
    "provides" : {
       "Module::Build::Database" : {
          "file" : "lib/Module/Build/Database.pm",
-         "version" : "0.40"
+         "version" : "0.41"
       },
       "Module::Build::Database::Helpers" : {
          "file" : "lib/Module/Build/Database/Helpers.pm",
@@ -71,5 +71,5 @@
          "http://dev.perl.org/licenses/"
       ]
    },
-   "version" : "0.40"
+   "version" : "0.41"
 }
