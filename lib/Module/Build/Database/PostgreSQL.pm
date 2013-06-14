@@ -11,7 +11,9 @@ In Build.PL :
      database_options => {
          name   => "my_database_name",
          schema => "my_schema_name",
+         # Extra items for scratch databases :
          append_to_conf => "text to add to postgresql.conf",
+         post_initdb => q[add extension if not exists hstore;],
      },
      database_extensions => {
          postgis   => {

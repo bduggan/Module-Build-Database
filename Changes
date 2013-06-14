@@ -1,5 +1,11 @@
 Revision history for Module-Build-Database
 
+0.42   Fri Jun 14 14:20:21 EDT 2013
+       added post_initdb
+
+0.41   Fri Jun 14 14:19:48 EDT 2013
+       added append_to_conf
+
 0.40   Mon Feb 25 09:00:56 EST 2013
        Documentation fixups (gollis)
 
