@@ -173,6 +173,11 @@ sub _start_new_db {
     -e $domain or die "could not find $domain";
 
     $self->_create_database();
+
+    if (my $post_initdb = $self->database_options('post_initdb')) {
+        $self->_do_psql($post_initdb);
+    }
+
     return $self->_dbhost;
 }
 
