@@ -19,7 +19,7 @@ $> or do {
     plan skip_all => "Cannot test postgres as root";
 };
 
-my $postg = $ENV{TEST_POSTGIS_BASE} || "/util/share/postgresql/contrib/postgis.sql";
+my $postg = $ENV{TEST_POSTGIS_BASE};
 unless (-d $postg) {
     plan skip_all => "No postgis.sql, set TEST_POSTGIS_BASE to a directory containing postgis.sql to enable this test";
 }
