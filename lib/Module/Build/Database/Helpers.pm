@@ -37,7 +37,7 @@ sub verify_bin {
         my $found;
         for my $potential_cmd (@look_for) {
             last if $found = which $potential_cmd;
-            if(-x "$try/$potential_cmd") {
+            if(defined $try && -x "$try/$potential_cmd") {
                 $found = "$try/$potential_cmd";
                 last;
             }
