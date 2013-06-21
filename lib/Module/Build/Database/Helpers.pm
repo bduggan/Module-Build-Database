@@ -1,6 +1,7 @@
 package Module::Build::Database::Helpers;
 use strict;
 use warnings;
+use File::Which qw( which );
 
 use Sub::Exporter -setup => {
     exports => [
@@ -30,11 +31,16 @@ sub do_system {
 
 sub verify_bin {
     my $bin = shift;
+    my $try = shift;
     for my $label (keys %$bin) {
         my @look_for = (ref $bin->{$label} eq 'ARRAY' ? @{ $bin->{$label} } : $bin->{$label});
         my $found;
         for my $potential_cmd (@look_for) {
-            last if ($found = qx[which $potential_cmd 2>/dev/null]);
+            last if $found = which $potential_cmd;
+            if(-x "$try/$potential_cmd") {
+                $found = "$try/$potential_cmd";
+                last;
+            }
         }
         unless ($found) {
             warn "could not find ".(join " or ",@look_for)." in current path\n" unless $label =~ /doc/;

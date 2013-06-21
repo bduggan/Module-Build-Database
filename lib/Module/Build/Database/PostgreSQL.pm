@@ -69,7 +69,19 @@ our %Bin = (
     Pgdump     => 'pg_dump',
     Pgdoc      => [ qw/pg_autodoc postgresql_autodoc/ ],
 );
-verify_bin(\%Bin);
+my $server_bin_dir;
+if(-d "/usr/lib/postgresql/") {
+    # Debian/Ubuntu doesn't put server bins in the default PATH
+    if(opendir my $dh, "/usr/lib/postgresql") {
+        ($server_bin_dir) = grep { -d $_ && -x "$_/postgres" } 
+                            map { "/usr/lib/postgresql/$_/bin" } 
+                            sort { my @a = split /\./, $a; my @b = split /\./, $b; $b[0] <=> $a[0] || $b[1] <=> $a[1] }
+                            grep { /^\d+\.\d+$/ }
+                            readdir $dh;
+        closedir $dh;
+    }
+}
+verify_bin(\%Bin, $server_bin_dir);
 
 sub _do_psql {
     my $self = shift;

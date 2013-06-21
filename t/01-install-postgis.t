@@ -6,15 +6,14 @@ use File::Path qw/mkpath/;
 use File::Copy qw/copy/;
 use IO::Socket::INET;
 use FindBin;
+use Module::Build::Database::PostgreSQL;
 
 use lib $FindBin::Bin.'/tlib';
 use misc qw/sysok/;
 
-my $pg = `which postgres`;
-
-$pg or do {
-       plan skip_all => "Cannot find postgres executable";
-   };
+$Module::Build::Database::PostgreSQL::Bin{Postgres} or do {
+    plan skip_all => "Cannot find postgres executable";
+};
 
 $> or do {
     plan skip_all => "Cannot test postgres as root";
@@ -25,7 +24,7 @@ unless (-d $postg) {
     plan skip_all => "No postgis.sql, set TEST_POSTGIS_BASE to a directory containing postgis.sql to enable this test";
 }
 
-my @pg_version = `postgres --version` =~ / (\d+)\.(\d+)\.(\d+)$/m;
+my @pg_version = `$Module::Build::Database::PostgreSQL::Bin{Postgres} --version` =~ / (\d+)\.(\d+)\.(\d+)$/m;
 
 unless ($pg_version[0] >= 8) {
     plan skip_all => "postgres version must be >= 8.0";
@@ -66,13 +65,13 @@ $ENV{PGHOST} = "$dbdir";
 $ENV{PGDATA} = "$dbdir";
 $ENV{PGDATABASE} = "scooby";
 
-sysok("initdb -D $dbdir");
+sysok("$Module::Build::Database::PostgreSQL::Bin{Initdb} -D $dbdir");
 
 open my $fp, ">> $dbdir/postgresql.conf" or die $!;
 print {$fp} qq[unix_socket_directory = '$dbdir'\n];
 close $fp or die $!;
 
-sysok(qq[pg_ctl -t 120 -o "-h ''" -w start]);
+sysok(qq[$Module::Build::Database::PostgreSQL::Bin{Pgctl} -t 120 -o "-h ''" -w start]);
 
 sysok("./Build dbfakeinstall");
 
@@ -83,7 +82,7 @@ my $out = `psql -c "\\d one"`;
 like $out, qr/table.*doo\.one/i, "made table one in schema doo";
 like $out, qr/x.*integer/, "made column x type integer";
 
-sysok("pg_ctl -D $dbdir -m immediate stop") unless $debug;
+sysok("$Module::Build::Database::PostgreSQL::Bin{Pgctl} -D $dbdir -m immediate stop") unless $debug;
 
 chdir '..'; # otherwise file::temp can't clean up
 
