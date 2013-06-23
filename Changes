@@ -1,5 +1,8 @@
 Revision history for Module-Build-Database
 
+0.43   Sun Jun 23 08:17:26 EDT 2013
+       deps, ubuntu compatibility (gollis)
+
 0.42   Fri Jun 14 14:20:21 EDT 2013
        added post_initdb
 
