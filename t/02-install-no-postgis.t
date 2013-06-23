@@ -11,9 +11,9 @@ use Module::Build::Database::PostgreSQL;
 use lib $FindBin::Bin.'/tlib';
 use misc qw/sysok/;
 
-$Module::Build::Database::PostgreSQL::Bin{Postgres} or do {
+if($Module::Build::Database::PostgreSQL::Bin{Postgres} eq '/bin/false') {
     plan skip_all => "Cannot find postgres executable";
-};
+}
 
 $> or do {
     plan skip_all => "Cannot test postgres as root";
