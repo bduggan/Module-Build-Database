@@ -20,7 +20,7 @@ $> or do {
 };
 
 my $postg = $ENV{TEST_POSTGIS_BASE};
-unless (-d $postg) {
+unless (defined $postg && -d $postg) {
     plan skip_all => "No postgis.sql, set TEST_POSTGIS_BASE to a directory containing postgis.sql to enable this test";
 }
 
