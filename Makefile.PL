@@ -8,10 +8,9 @@ WriteMakefile
   'EXE_FILES' => [],
   'VERSION_FROM' => 'lib/Module/Build/Database.pm',
   'PREREQ_PM' => {
-                   'DBD::SQLite' => 0,
                    'IO::Socket::INET' => 0,
-                   'DBD::Pg' => 0,
                    'Sub::Exporter' => 0,
+                   'File::Which' => 0,
                    'Test::More' => 0,
                    'Digest::MD5' => 0,
                    'File::Copy::Recursive' => 0,
