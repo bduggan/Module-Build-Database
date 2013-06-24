@@ -12,6 +12,7 @@ my $builder = Module::Build->new(
         'File::Copy::Recursive' => 0,
         'IO::Socket::INET' => 0,
         'File::Slurp' => 0,
+        'File::Which'   => 0,
     },
     requires => {
         'Digest::MD5' => 0,
@@ -19,7 +20,6 @@ my $builder = Module::Build->new(
         'Sub::Exporter' => 0,
         'blib'          => 0,
         'List::MoreUtils' => 0,
-        'File::Which'   => 0,
     },
     add_to_cleanup      => [ 'Module-Build-Database-*' ],
     create_makefile_pl => 'traditional',

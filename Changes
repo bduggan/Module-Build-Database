@@ -1,5 +1,8 @@
 Revision history for Module-Build-Database
 
+0.44   Mon Jun 24 10:03:30 EDT 2013
+       fixed dependencies
+
 0.43   Sun Jun 23 08:17:26 EDT 2013
        deps, ubuntu compatibility (gollis)
 
