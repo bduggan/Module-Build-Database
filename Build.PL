@@ -12,7 +12,6 @@ my $builder = Module::Build->new(
         'File::Copy::Recursive' => 0,
         'IO::Socket::INET' => 0,
         'File::Slurp' => 0,
-        'File::Which'   => 0,
     },
     requires => {
         'Digest::MD5' => 0,
