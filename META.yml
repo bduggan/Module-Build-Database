@@ -5,7 +5,6 @@ author:
 build_requires:
   File::Copy::Recursive: 0
   File::Slurp: 0
-  File::Which: 0
   IO::Socket::INET: 0
   Test::More: 0
 configure_requires:
@@ -20,7 +19,7 @@ name: Module-Build-Database
 provides:
   Module::Build::Database:
     file: lib/Module/Build/Database.pm
-    version: 0.44
+    version: 0.45
   Module::Build::Database::Helpers:
     file: lib/Module/Build/Database/Helpers.pm
     version: 0
@@ -44,4 +43,4 @@ requires:
   blib: 0
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.44
+version: 0.45
