@@ -1,5 +1,8 @@
 Revision history for Module-Build-Database
 
+0.45   Tue Jun 25 07:51:08 EDT 2013
+       removed use of File::Which
+
 0.44   Mon Jun 24 10:03:30 EDT 2013
        fixed dependencies
 
