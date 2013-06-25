@@ -256,7 +256,7 @@ sub _dump_base_sql {
          "|", "egrep -v '^--'",
          "|", "egrep -v '^CREATE SCHEMA $database_schema;\$'",
          "|", "egrep -v '^SET search_path'",
-         "|", "perl -p -e '/alter table/i and s/\\b($database_schema)\.//'",
+         "|", "$^X -p -e '/alter table/i and s/\\b($database_schema)\.//'",
         ">", "$tmpfile" )
       or return 0;
     rename "$tmpfile", $outfile or die "rename failed: $!";

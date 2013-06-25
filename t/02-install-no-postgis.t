@@ -40,7 +40,7 @@ copy "$src_dir/Build.PL", $dir;
 copy "$src_dir/db/patches/0010_one.sql","$dir/db/patches";
 chdir $dir;
 
-sysok("perl -Mblib=$FindBin::Bin/../blib Build.PL");
+sysok("$^X -Mblib=$FindBin::Bin/../blib Build.PL");
 
 sysok("./Build dbtest");
 
