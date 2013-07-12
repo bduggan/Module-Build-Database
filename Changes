@@ -1,5 +1,9 @@
 Revision history for Module-Build-Database
 
+0.47   Fri Jul 12 09:15:20 EDT 2013
+       Renamed post_initdb to after_create,
+       and run it for a fresh install.
+
 0.46   Tue Jun 25 12:04:20 EDT 2013
        put it back (gollis)
 
