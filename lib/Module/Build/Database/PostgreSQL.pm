@@ -13,21 +13,44 @@ In Build.PL :
          schema => "my_schema_name",
          # Extra items for scratch databases :
          append_to_conf => "text to add to postgresql.conf",
-         post_initdb => q[add extension if not exists hstore;],
+         after_create => q[create schema audit;],
      },
      database_extensions => {
-         postgis   => {
-             schema => "public",
-             # postgis.sql and spatial_ref_sys.sql should be under postgis_base (below)
-         },
+         postgis     => { schema => "public", },
+         # directory with postgis.sql and spatial_ref_sys.sql
+         postgis_base => '/usr/local/share/postgresql/contrib'
      },
  );
 
- perl Build.PL --postgis_base=/util/share/postgresql/contrib
-
 =head1 DESCRIPTION
 
-Postgres driver for Module::Build::Database.
+Postgres driver for L<Module::Build::Database>.
+
+=head1 OPTIONS
+
+All of the options above may be changed via the Module::Build option
+handling, e.g.
+
+  perl Build.PL --database_options name=my_name
+  perl Build.PL --postgis_base=/usr/local/share/postgresql/contrib
+
+The options are as follows ;
+
+ name : the name of the database (i.e. 'create database $name')
+
+ schema : the name of the schema to be managed by MBD
+
+ append_to_conf : extra options to append to postgresql.conf before starting test instances of postgres
+
+ after_create : extra SQL to run after running a 'create database' statement.  Note that this will be run in several
+ different situations :
+
+    1. during a ./Build test (creating a test db)
+    2. during a ./Build dbfakeinstall (also creating a test db)
+    3. during an initial ./Build install; when the target database does not yet exist.
+
+An example of using the after_create statement would be to create a second schema which
+will not be managed by MBD, but on which the MBD-managed schema depends.
 
 =head1 NOTES
 
@@ -187,10 +210,6 @@ sub _start_new_db {
     -e $domain or die "could not find $domain";
 
     $self->_create_database();
-
-    if (my $post_initdb = $self->database_options('post_initdb')) {
-        $self->_do_psql($post_initdb);
-    }
 
     return $self->_dbhost;
 }
@@ -414,6 +433,17 @@ SAFE_MAKE_PLPGSQL
         $self->_do_psql_file($self->postgis_base. "/spatial_ref_sys.sql") or die "could not do spatial_ref_sys.sql";
         $self->_do_psql("alter database $database_name set search_path to $database_schema, $postgis_schema");
     }
+
+    if (my $sql = $self->database_options('post_initdb')) {
+        info "applying post_initdb (nb: this option has been renamed to 'after_create')";
+        $self->_do_psql($sql);
+    }
+
+    if (my $sql = $self->database_options('after_create')) {
+        info "applying after_create";
+        $self->_do_psql($sql);
+    }
+
     1;
 }
 
