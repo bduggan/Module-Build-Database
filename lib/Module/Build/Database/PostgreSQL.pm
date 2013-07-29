@@ -52,6 +52,18 @@ The options are as follows ;
 An example of using the after_create statement would be to create a second schema which
 will not be managed by MBD, but on which the MBD-managed schema depends.
 
+To specify a server side procedural language you can use the C<database_extension> -E<gt> C<languages>
+option, like so:
+
+ my $builder = Module::Build::Database->new(
+   database_extension => {
+     languages => [ 'plperl', 'pltcl' ],
+   },
+ );
+
+Trying to create languages to a patch will not work because they not stored in the main schema and will
+not be included in C<base.sql> when you run C<Build dbdist>.
+
 =head1 NOTES
 
 The environment variables understood by C<psql>:
@@ -381,6 +393,15 @@ sub _database_exists {
     my $self  =  shift;
     my $database_name = shift || $self->database_options('name');
     do_system("_silent","psql -Alt -F ':' | egrep -q '^$database_name:'");
+}
+
+sub _create_language_extensions {
+    my $self = shift;
+    my $list = $self->database_extensions('languages');
+    return unless $list;
+    foreach my $lang (@$list) {
+        $self->_do_psql("create extension if not exists $lang") || die "error creating language: $lang"; 
+    }
 }
 
 sub _create_database {

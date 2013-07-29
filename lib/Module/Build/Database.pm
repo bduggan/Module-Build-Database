@@ -263,6 +263,9 @@ sub ACTION_dbtest {
     my $host = $self->_start_new_db() or die "could not start the db";
     $self->notes(dbtest_host => $host);
 
+    # 1a. create postgres language extensions, if appropriate
+    $self->_create_language_extensions;
+
     # 2. Apply db/dist/base.sql.
     $self->_apply_base_sql();
 
@@ -326,6 +329,9 @@ sub ACTION_dbdist {
 
     # 1. Start a new empty database instance.
     $self->_start_new_db();
+
+    # 1a. create postgres language extensions, if appropriate
+    $self->_create_language_extensions;
 
     # 2. Populate the schema using db/dist/base.sql.
     # If there is no base.sql, we will create it from the patches.
@@ -449,8 +455,11 @@ sub ACTION_dbinstall {
     if ($self->_is_fresh_install()) {
         info "Fresh install.";
         $self->_create_database() or die "could not create database\n";
+        $self->_create_language_extensions();
         $self->_apply_base_sql() or die "could not apply base sql\n";
         $self->_apply_base_data() or die "could not apply base_data sql\n";
+    } else {
+        $self->_create_language_extensions() or die "could not create language extensions\n";
     }
 
     my %base_patches = $self->_read_patches_applied_file();
@@ -510,6 +519,8 @@ sub ACTION_dbplant {
 sub hash_properties {
     uniq(Module::Build->hash_properties, shift->SUPER::hash_properties);
 }
+
+sub _create_language_extensions { }
 
 1;
 
