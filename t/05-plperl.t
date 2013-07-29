@@ -62,6 +62,8 @@ my $regex = qr{^Perl version running in postgres (v?[\d\.]+\d+):1$};
 $out =~ $regex; 
 like $out, $regex, "plperl Perl version = $1";
 
+sysok("./Build dbfakeinstall");
+
 sysok("$Module::Build::Database::PostgreSQL::Bin{Pgctl} -D $dbdir -m immediate stop");
 
 chdir(File::Spec->updir); # otherwise file::temp can't clean up

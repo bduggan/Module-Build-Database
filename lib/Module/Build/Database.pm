@@ -438,6 +438,7 @@ sub ACTION_dbfakeinstall {
 
     $tmp = File::Temp->new();$tmp->close;
     $self->_start_new_db();
+    $self->_create_language_extensions;
     $self->_apply_base_sql("$existing_schema") # NB: contains patches_applied table
         or die "error with existing schema";
     do { $self->_apply_patch($_) or die "patch $_ failed" } for @todo;
