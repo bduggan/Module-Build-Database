@@ -460,7 +460,7 @@ sub ACTION_dbinstall {
         $self->_apply_base_sql() or die "could not apply base sql\n";
         $self->_apply_base_data() or die "could not apply base_data sql\n";
     } else {
-        $self->_create_language_extensions() or die "could not create language extensions\n";
+        $self->_create_language_extensions();
     }
 
     my %base_patches = $self->_read_patches_applied_file();
