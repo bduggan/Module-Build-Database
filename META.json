@@ -41,7 +41,7 @@
    "provides" : {
       "Module::Build::Database" : {
          "file" : "lib/Module/Build/Database.pm",
-         "version" : "0.47"
+         "version" : "0.48"
       },
       "Module::Build::Database::Helpers" : {
          "file" : "lib/Module/Build/Database/Helpers.pm",
@@ -70,5 +70,5 @@
          "http://dev.perl.org/licenses/"
       ]
    },
-   "version" : "0.47"
+   "version" : "0.48"
 }
