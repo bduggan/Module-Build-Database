@@ -50,7 +50,12 @@ Additionally, when doing
 
  ./Build install
 
-The db/ directory will be installed into <install root>/etc/Module-Name/db.
+The content of the C<db> directory will be installed into your distributions
+share directory so that it can be retrieved using L<File::ShareDir>.  For example,
+assuming your MBD dist is called C<MyDist>, to find the C<base.sql> file from perl:
+
+ use File::ShareDir qw( dist_dir );
+ my $base = dist_dir('MyDist') . '/dist/base.sql';
 
 =head1 DESCRIPTION
 
@@ -206,6 +211,13 @@ __PACKAGE__->add_property(database_object_class => default => "");
 sub new {
     my $class = shift;
     my %args = @_;
+    
+    # add db to the share directory, if it isn't already there
+    my $dirs = $args{share_dir}->{dist} // [];
+    $dirs = [ $dirs ] unless ref($dirs) eq 'ARRAY';
+    push @$dirs, 'db';
+    $args{share_dir}->{dist} = $dirs;
+    
     # recursive constructor, fun
     my $driver = delete $args{database_type}
       or return $class->SUPER::new(%args);

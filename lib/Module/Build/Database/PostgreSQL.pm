@@ -356,7 +356,8 @@ sub _patch_table_exists {
     # returns true or false
     my $self = shift;
     my $file = File::Temp->new(); $file->close;
-    $self->_do_psql_into_file("$file","select tablename from pg_tables where tablename='patches_applied'");
+    my $database_schema = $self->database_options('schema');
+    $self->_do_psql_into_file("$file","select tablename from pg_tables where tablename='patches_applied' and schemaname = '$database_schema'");
     return do_system("_silent","grep -q patches_applied $file");
 }
 
@@ -366,14 +367,16 @@ sub _dump_patch_table {
     my $self = shift;
     my %args = @_;
     my $filename = $args{outfile} or Carp::confess "need a filename";
-    $self->_do_psql_into_file($filename,"select patch_name,patch_md5 from patches_applied order by patch_name");
+    my $database_schema = $self->database_options('schema');
+    $self->_do_psql_into_file($filename,"select patch_name,patch_md5 from $database_schema.patches_applied order by patch_name");
 }
 
 sub _create_patch_table {
     my $self = shift;
     # create a new patch table
+    my $database_schema = $self->database_options('schema');
     my $sql = <<EOSQL;
-    CREATE TABLE patches_applied (
+    CREATE TABLE $database_schema.patches_applied (
         patch_name   varchar(255) primary key,
         patch_md5    varchar(255),
         when_applied timestamp );
@@ -385,7 +388,8 @@ sub _insert_patch_record {
     my $self = shift;
     my $record = shift;
     my ($name,$md5) = @$record;
-    $self->_do_psql("insert into patches_applied (patch_name, patch_md5, when_applied) ".
+    my $database_schema = $self->database_options('schema');
+    $self->_do_psql("insert into $database_schema.patches_applied (patch_name, patch_md5, when_applied) ".
              " values ('$name','$md5',now()) ");
 }
 
@@ -469,7 +473,9 @@ SAFE_MAKE_PLPGSQL
 }
 
 sub _remove_patches_applied_table {
-    shift->_do_psql("drop table if exists patches_applied;");
+    my $self = shift;
+    my $database_schema = $self->database_options('schema');
+    $self->_do_psql("drop table if exists $database_schema.patches_applied;");
 }
 
 sub _generate_docs {
