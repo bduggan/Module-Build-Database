@@ -315,7 +315,7 @@ errs on the side of cleaning up too much.
 
 =head1 SEE ALSO
 
-L<Test::MBD>
+L<Test::MBD>, L<Module::Build::Database::SQLite>, L<Module::Build::Database::PostgreSQL>
 
 =cut
 
