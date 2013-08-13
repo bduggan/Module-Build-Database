@@ -126,6 +126,7 @@ sub _do_psql {
     print $tmp $sql;
     $tmp->close;
     # -q: quiet, ON_ERROR_STOP: throw exceptions
+    local $ENV{PERL5LIB};
     do_system( $Bin{Psql}, "-q", "-v'ON_ERROR_STOP=1'", "-f", "$tmp", $database_name );
 }
 sub _do_psql_out {
@@ -133,6 +134,7 @@ sub _do_psql_out {
     my $sql = shift;
     my $database_name  = $self->database_options('name');
     # -F field separator, -x extended output, -A: unaligned
+    local $ENV{PERL5LIB};
     do_system( $Bin{Psql}, "-q", "-v'ON_ERROR_STOP=1'", "-A", "-F ' : '", "-x", "-c", qq["$sql"], $database_name );
 }
 sub _do_psql_file {
@@ -148,6 +150,7 @@ sub _do_psql_file {
     }
     my $database_name  = $self->database_options('name');
     # -q: quiet, ON_ERROR_STOP: throw exceptions
+    local $ENV{PERL5LIB};
     do_system($Bin{Psql},"-q","-v'ON_ERROR_STOP=1'","-f",$filename, $database_name);
 }
 sub _do_psql_into_file {
@@ -156,12 +159,14 @@ sub _do_psql_into_file {
     my $sql      = shift;
     my $database_name  = $self->database_options('name');
     # -A: unaligned, -F: field separator, -t: tuples only, ON_ERROR_STOP: throw exceptions
+    local $ENV{PERL5LIB};
     do_system( $Bin{Psql}, "-q", "-v'ON_ERROR_STOP=1'", "-A", "-F '\t'", "-t", "-c", qq["$sql"], $database_name, ">", "$filename" );
 }
 sub _do_psql_capture {
     my $self = shift;
     my $sql = shift;
     my $database_name  = $self->database_options('name');
+    local $ENV{PERL5LIB};
     return qx[$Bin{Psql} -c "$sql" $database_name];
 }
 
@@ -283,6 +288,7 @@ sub _dump_base_sql {
     # -x : no privileges, -O : no owner, -s : schema only, -n : only this schema
     my $database_schema = $self->database_options('schema');
     my $database_name   = $self->database_options('name');
+    local $ENV{PERL5LIB};
     do_system( $Bin{Pgdump}, "-xOs", "-E", "utf8", "-n", $database_schema, $database_name,
          "|", "egrep -v '^--'",
          "|", "egrep -v '^CREATE SCHEMA $database_schema;\$'",
@@ -308,6 +314,7 @@ sub _dump_base_data {
     # -x : no privileges, -O : no owner, -s : schema only, -n : only this schema
     my $database_schema = $self->database_options('schema');
     my $database_name   = $self->database_options('name');
+    local $ENV{PERL5LIB};
     do_system( $Bin{Pgdump}, "--data-only", "-xO", "-E", "utf8", "-n", $database_schema, $database_name,
         "|", "egrep -v '^SET search_path'",
         ">", "$tmpfile" )
@@ -392,6 +399,7 @@ sub _insert_patch_record {
 sub _database_exists {
     my $self  =  shift;
     my $database_name = shift || $self->database_options('name');
+    local $ENV{PERL5LIB};
     do_system("_silent","psql -Alt -F ':' | egrep -q '^$database_name:'");
 }
 
@@ -412,6 +420,7 @@ sub _create_database {
 
     # create the database if necessary
     unless ($self->_database_exists($database_name)) {
+        local $ENV{PERL5LIB};
         do_system($Bin{Createdb}, $database_name) or die "could not createdb";
     }
 
