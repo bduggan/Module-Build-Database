@@ -1,7 +1,7 @@
 
 =head1 NAME
 
-Module::Build::Database::SQLite
+Module::Build::Database::SQLite - SQLite implementation for MBD
 
 =head1 SYNOPSIS
 

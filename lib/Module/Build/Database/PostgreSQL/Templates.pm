@@ -1,6 +1,6 @@
 =head1 NAME
 
-Module::Build::Database::PostgreSQL::Templates
+Module::Build::Database::PostgreSQL::Templates - PostgreSQL documentation templates
 
 =head1 DESCRIPTION
 
@@ -326,24 +326,24 @@ _CUT: func_<tmpl_var schema>.<tmpl_var function>.html
 END_HTML
 <tmpl_loop schemas><tmpl_loop tables>
 _CUT: <tmpl_if view_definition>view<tmpl_else>table</tmpl_if>_<tmpl_var table>.pod
-=head1 NAME
+\=head1 NAME
 
 <tmpl_var table>
 
-=head1 DESCRIPTION
+\=head1 DESCRIPTION
 
 <tmpl_var table_comment>
 
-=head1 FIELDS
+\=head1 FIELDS
 
 <tmpl_loop columns> <tmpl_var column> (<tmpl_var column_type>) - <tmpl_var column_comment>
 </tmpl_loop>
 
-=head1 SCHEMA
+\=head1 SCHEMA
 
 _DB: \d+ <tmpl_var table>
 
-=cut
+\=cut
 
 </tmpl_loop>
 </tmpl_loop>

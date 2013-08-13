@@ -51,12 +51,12 @@ Test::MBD - Helper for testing Module::Build::Database apps
 =head1 DESCRIPTION
 
 For L<Module::Build::Database> application tests, use Test::MBD in
-each test case that needs the database.  Invokes './Build dbtest
---leave_running=1' to start up the test database if it isn't already
+each test case that needs the database.  Invokes C<./Build dbtest
+--leave_running=1> to start up the test database if it isn't already
 running and leaves it running.
 
-Run Test::MBD->stop in your very last test case to shut down and clean
-up after the test database with 'Build dbclean'.
+Run C<Test::MBD-E<gt>stop> in your very last test case to shut down and clean
+up after the test database with C<Build dbclean>.
 
 =head1 SEE ALSO
 
