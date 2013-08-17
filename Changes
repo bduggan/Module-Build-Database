@@ -1,5 +1,8 @@
 Revision history for Module-Build-Database
 
+0.49   Sat Aug 17 12:35:08 EDT 2013
+       plperl, multiple schemas, docs (gollis)
+
 0.48   Tue Jul 30 08:27:25 EDT 2013
        Languages option for postgres (gollis)
 
