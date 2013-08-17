@@ -56,7 +56,7 @@ sysok("./Build dbfakeinstall");
 
 sysok("./Build dbinstall");
 
-my $out = `psql -F: -P tuples_only -P format=unaligned -c "select perl_version(),1"`;
+my $out = do { local $ENV{PERL5LIB}; `psql -F: -P tuples_only -P format=unaligned -c "select perl_version(),1"` };
 
 my $regex = qr{^Perl version running in postgres (v?[\d\.]+\d+):1$};
 $out =~ $regex; 

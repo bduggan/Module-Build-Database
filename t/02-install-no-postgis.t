@@ -72,7 +72,7 @@ sysok("./Build dbfakeinstall");
 
 sysok("./Build dbinstall");
 
-my $out = `psql -c "\\d one"`;
+my $out = do { local $ENV{PERL5LIB}; `psql -c "\\d one"` };
 
 like $out, qr/table.*doo\.one/i, "made table one in schema doo";
 like $out, qr/x.*integer/, "made column x type integer";
