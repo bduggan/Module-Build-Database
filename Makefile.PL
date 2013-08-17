@@ -12,6 +12,7 @@ WriteMakefile
                    'Sub::Exporter' => 0,
                    'File::Which' => 0,
                    'Test::More' => 0,
+                   'File::ShareDir' => 0,
                    'Digest::MD5' => 0,
                    'File::Copy::Recursive' => 0,
                    'blib' => 0,
