@@ -65,131 +65,262 @@ which adds functionality for testing and distributing changes to the database.
 Changes are represented as sql files ("patches") which will be fed into a
 command line client for the database.
 
-A complete schema is regenerated whenever "dbdist" is run.
+A complete schema is regenerated whenever L<dbdist|#dbdist> is run.
 
 A list of the patches which have been applied is stored in two places :
-    (1) the file "db/dist/patches_applied.txt"
-    (2) the table "patches_applied" within the target database.
 
-When the dbinstall action is invoked, any patches in (1) but
+=over
+
+=item 1.
+
+the file C<db/dist/patches_applied.txt>
+
+=item 2.
+
+the table C<patches_applied> within the target database.
+
+=back
+
+When the L<dbinstall|#dbinstall> action is invoked, any patches in (1) but
 not in (2) are applied.  In order to determine whether they will apply
-successfully, "dbfakeinstall" may be run, which does the following :
+successfully, L<dbfakeinstall|#dbfakeinstall> may be run, which does the following :
 
-    1. Dumps the schema for an existing instance.
-    2. Applies any patches not found in the "patches_applied" table.
-    3. Dumps the resulting schema and compares it to the schema in db/dist/base.sql.
+=over
+
+=item 1.
+
+Dumps the schema for an existing instance.
+
+=item 2.
+
+Applies any patches not found in the C<patches_applied> table.
+
+=item 3.
+
+Dumps the resulting schema and compares it to the schema in C<db/dist/base.sql>.
+
+=back
 
 If the comparison in step 3 is the same, then one may conclude that applying
 the missing patches will produce the desired schema.
 
 =head1 ACTIONS
 
-=over
+=head2 dbdist
 
-=item dbdist
+This (re-)generates the files C<db/dist/base.sql>, C<db/dist/base_data.sql>,
+and C<db/dist/patches_applied.txt>.
 
-This (re-)generates the files db/dist/base.sql, db/dist/base_data.sql,
-and db/dist/patches_applied.txt.
-
-It does this by reading patches from db/patches/*.sql,
-applying the ones that are not listed in db/dist/patches_applied.txt,
-and then dumping out a new db/dist/base.sql and db/dist/base_data.sql.
+It does this by reading patches from C<db/patches/*.sql>,
+applying the ones that are not listed in C<db/dist/patches_applied.txt>,
+and then dumping out a new C<db/dist/base.sql> and C<db/dist/base_data.sql>.
 
 In other words :
 
- 1. Start a new empty database instance.
- 2. Populate the schema using db/dist/base.sql.
- 3. Import any data in db/dist/base_data.sql.
- 4. For every patch in db/patches/*.sql :
-    Is the patch is listed in db/dist/patches_applied.txt?
-    Yes?  Skip it.
-    No?  Apply it, and add it to db/dist/patches_applied.txt.
- 5. Dump the new schema out to db/dist/base.sql
- 6. Dump any data out into db/dist/base_data.sql.
- 7. Stop the database.
+=over 4
 
-=item dbtest
+=item 1.
 
- 1. Start a new empty database instance.
- 2. Apply db/dist/base.sql.
- 3. Apply db/dist/base_data.sql.
- 4. Apply any patches in db/patches/*.sql that are
-    not in db/dist/patches_applied.txt.
-    For each of the above, the tests will fail if any of the
-    patches do not apply cleanly.
- 5. Shut down the database instance.
+Start a new empty database instance.
 
-If --leave_running=1 is passed, step 4 will not be executed.
+=item 2.
+
+Populate the schema using C<db/dist/base.sql>.
+
+=item 3.
+
+Import any data in C<db/dist/base_data.sql>.
+
+=item 4.
+
+For every patch in C<db/patches/*.sql> :
+
+Is the patch is listed in C<db/dist/patches_applied.txt>?
+
+=over 4
+
+=item Yes?
+
+Skip it.
+
+=item No?
+
+Apply it, and add it to C<db/dist/patches_applied.txt>.
+
+=back
+
+=item 5.
+
+Dump the new schema out to C<db/dist/base.sql>
+
+=item 6.
+
+Dump any data out into C<db/dist/base_data.sql>
+
+=item 7.
+
+Stop the database.
+
+=back
+
+=head2 dbtest
+
+=over 4
+
+=item 1.
+
+Start a new empty database instance.
+
+=item 2.
+
+Apply C<db/dist/base.sql>.
+
+=item 3.
+
+Apply C<db/dist/base_data.sql>.
+
+=item 4.
+
+Apply any patches in C<db/patches/*.sql> that are
+not in C<db/dist/patches_applied.txt>.
+For each of the above, the tests will fail if any of the
+patches do not apply cleanly.
+
+=item 5.
+
+Shut down the database instance.
+
+If C<--leave_running=1> is passed, step 4 will not be executed.
 The "host" for the database can be found in
 
  Module::Build::Database->current->notes("dbtest_host");
 
-=item dbclean
+=back
+
+=head2 dbclean
 
 Stop any test daemons that are running and remove any
 test databases that have been created.
 
-=item dbdocs
+=head2 dbdocs
 
- 1. Start a new empty database instance.
- 2. Apply db/dist/base.sql.
- 3. Dump the new schema docs out to db/doc.
- 4. Stop the database.
+=over 4
 
-=item dbfakeinstall
+=item 1.
 
- 1. Look for a running database, based on environment variables.
- 2. Display the connection information obtained from the above.
- 3. Dump the schema from the live database to a temporary directory.
- 4. Make a temporary database using the above schema.
- 5. Apply patches listed in db/dist/patches_applied.txt that are not
-    in the patches_applied table.
- 6. Dump out the resulting schema, and compare it to db/dist/base.sql.
+Start a new empty database instance.
 
-Note that dbdist must be run to update base.sql before doing dbfakeinstall
-or dbinstall.
+=item 2.
 
-=item dbinstall
+Apply C<db/dist/base.sql>.
 
- 1. Look for a running database, based on environment variables
- 2. Apply any patches in db/dist/patches_applied.txt that are not in the patches_applied table.
- 3. Add an entry to the patches_applied table for each patch applied.
+=item 3.
 
-=item dbplant
+Dump the new schema docs out to C<db/doc>.
 
- 1. Starts a test database based on base.sql and any patches (see dbtest)
- 2. Calls plant() in L<Rose::Planter>. to generate a static object hierarchy.
- 3. Stops the test database.
+=item 4.
+
+Stop the database.
+
+=back
+
+=head2 dbfakeinstall
+
+=over 4
+
+=item 1.
+
+Look for a running database, based on environment variables.
+
+=item 2.
+
+Display the connection information obtained from the above.
+
+=item 3.
+
+Dump the schema from the live database to a temporary directory.
+
+=item 4.
+
+Make a temporary database using the above schema.
+
+=item 5.
+
+Apply patches listed in C<db/dist/patches_applied.txt> that are not
+in the C<patches_applied> table.
+
+=item 6.
+
+Dump out the resulting schema, and compare it to C<db/dist/base.sql>.
+
+=back
+
+Note that L<dbdist|#dbdist> must be run to update C<base.sql> before doing C<dbfakeinstall|#dbfakeinstall>
+or C<dbinstall|#dbinstall>.
+
+=head2 dbinstall
+
+=over 4
+
+=item 1.
+
+Look for a running database, based on environment variables
+
+=item 2.
+
+Apply any patches in C<db/dist/patches_applied.txt> that are not in the C<patches_applied> table.
+
+=item 3.
+
+Add an entry to the C<patches_applied> table for each patch applied.
+
+=back
+
+=head2 dbplant
+
+=over 4
+
+=item 1.
+
+Starts a test database based on C<base.sql> and any patches (see L<dbtest|#dbtest>)
+
+=item 2.
+
+Calls C<plant()> in L<Rose::Planter>. to generate a static object hierarchy.
+
+=item 3.
+
+Stops the test database.
+
+=back
 
 The default name of the object class will be formed by appending
 '::Objects' to the name of the module.  This may be overridden
-by setting the build property 'database_object_class'.  The directory
-name will be formed by prepending 'lib' and appending
-'autolib', e.g. ./lib/MyModule/Objects/autolib.
-
-=back
+by setting the build property C<database_object_class>.  The directory
+name will be formed by prepending C<lib> and appending
+C<autolib>, e.g. C<./lib/MyModule/Objects/autolib>.
 
 =head1 NOTES
 
 Patches will be applied in lexicographic order, so their names should start
-with a sequence of digits, e.g.  0010_something.sql, 0020_something_else.sql, etc.
+with a sequence of digits, e.g. C<0010_something.sql>, C<0020_something_else.sql>, etc.
 
 =head1 AUTHOR
 
- Brian Duggan
+Brian Duggan
 
- Graham Ollis
+Graham Ollis E<lt>plicease@cpan.orgE<gt>
 
- Curt Tilmes
+Curt Tilmes
 
 =head1 TODO
 
-Allow dbclean to not interfere with other running mbd-test databases.  Currently it
+Allow L<dbclean|#dbclean> to not interfere with other running mbd-test databases.  Currently it
 errs on the side of cleaning up too much.
 
 =head1 SEE ALSO
 
-L<Test::MBD>
+L<Test::MBD>, L<Module::Build::Database::SQLite>, L<Module::Build::Database::PostgreSQL>
 
 =cut
 

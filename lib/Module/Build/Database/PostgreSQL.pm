@@ -1,6 +1,6 @@
 =head1 NAME
 
-Module::Build::Database::PostgreSQL
+Module::Build::Database::PostgreSQL - PostgreSQL implementation for MBD
 
 =head1 SYNOPSIS
 
@@ -36,21 +36,45 @@ handling, e.g.
 
 The options are as follows ;
 
- name : the name of the database (i.e. 'create database $name')
+=over 4
 
- schema : the name of the schema to be managed by MBD
+=item name
 
- append_to_conf : extra options to append to postgresql.conf before starting test instances of postgres
+the name of the database (i.e. 'create database $name')
 
- after_create : extra SQL to run after running a 'create database' statement.  Note that this will be run in several
- different situations :
+=item schema
 
-    1. during a ./Build test (creating a test db)
-    2. during a ./Build dbfakeinstall (also creating a test db)
-    3. during an initial ./Build install; when the target database does not yet exist.
+the name of the schema to be managed by MBD
+
+=item append_to_conf
+
+extra options to append to C<postgresql.conf> before starting test instances of postgres
+
+=item after_create
+
+extra SQL to run after running a 'create database' statement.  Note that this will be run in several
+different situations :
+
+=over 4
+
+=item 1.
+
+during a L<dbtest|Module::Build::Database#dbtest> (creating a test db)
+
+=item 2.
+
+during a L<dbfakeinstall|Module::Build::Database#dbfakeinstall> (also creating a test db)
+
+=item 3.
+
+during an initial L<dbinstall|Module::Build::Database#dbinstall>; when the target database does not yet exist.
+
+=back
 
 An example of using the after_create statement would be to create a second schema which
 will not be managed by MBD, but on which the MBD-managed schema depends.
+
+=item database_extension 
 
 To specify a server side procedural language you can use the C<database_extension> -E<gt> C<languages>
 option, like so:
@@ -64,12 +88,21 @@ option, like so:
 Trying to create languages to a patch will not work because they not stored in the main schema and will
 not be included in C<base.sql> when you run C<Build dbdist>.
 
+This is also similar to
+
+ after_create => 'create extension ...',
+
+except it is executed on B<every> L<dbinstall|Module::Build::Database#dbinstall> meaning you can use this to add extensions to
+existing database deployments.
+
+=back
+
 =head1 NOTES
 
 The environment variables understood by C<psql>:
 C<PGUSER>, C<PGHOST> and C<PGPORT> will be used when
-connecting to a live database (for C<install> and
-C<fakeinstall>).  C<PGDATABASE> will be ignored;
+connecting to a live database (for L<dbinstall|Module::Build::Database#dbinstall> and
+L<fakeinstall||Module::Build::Database#dbfakeinstall>).  C<PGDATABASE> will be ignored;
 the name of the database should be specified in 
 Build.PL instead.
 
