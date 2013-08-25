@@ -35,14 +35,15 @@
             "File::Which" : "0",
             "List::MoreUtils" : "0",
             "Sub::Exporter" : "0",
-            "blib" : "0"
+            "blib" : "0",
+            "perl" : "v5.10.0"
          }
       }
    },
    "provides" : {
       "Module::Build::Database" : {
          "file" : "lib/Module/Build/Database.pm",
-         "version" : "0.49"
+         "version" : "0.50"
       },
       "Module::Build::Database::Helpers" : {
          "file" : "lib/Module/Build/Database/Helpers.pm",
@@ -71,5 +72,5 @@
          "http://dev.perl.org/licenses/"
       ]
    },
-   "version" : "0.49"
+   "version" : "0.50"
 }
