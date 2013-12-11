@@ -77,7 +77,6 @@ eg/SqliteApp/db/patches/0050_five.sql
 eg/SqliteApp/lib/SqliteApp.pm
 ignore.txt
 lib/Module/Build/Database.pm
-lib/Module/Build/Database.pm.orig
 lib/Module/Build/Database/Helpers.pm
 lib/Module/Build/Database/PostgreSQL.pm
 lib/Module/Build/Database/PostgreSQL/Templates.pm
