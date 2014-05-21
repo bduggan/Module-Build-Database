@@ -355,7 +355,12 @@ sub new {
     my $subclass = "$class\::$driver";
     eval "use $subclass";
     die $@ if $@;
-    return $subclass->new(%args);
+    my $self = $subclass->new(%args);
+    $self->add_to_cleanup(
+        'tmp_db_????.sql',
+        'postmaster.log',
+    );
+    $self;
 }
 
 # Return an array of patch filenames.
@@ -536,7 +541,7 @@ sub ACTION_dbfakeinstall {
     $self->_show_live_db();
 
     # 3. Dump the schema from the live database to a temporary directory.
-    my $existing_schema = File::Temp->new();
+    my $existing_schema = File::Temp->new(TEMPLATE => "tmp_db_XXXX", SUFFIX => '.sql');
     $existing_schema->close;
     if ($self->_is_fresh_install()) {
         info "Ready to create the base database.";
@@ -583,7 +588,7 @@ sub ACTION_dbfakeinstall {
     $self->_start_new_db();
     $self->_create_language_extensions;
     $self->_apply_base_sql("$existing_schema") # NB: contains patches_applied table
-        or die "error with existing schema";
+        or do { $existing_schema->unlink_on_destroy(0); die "error with existing schema" };
     do { $self->_apply_patch($_) or die "patch $_ failed" } for @todo;
     $self->_remove_patches_applied_table();
     $self->_dump_base_sql(outfile => "$tmp");
