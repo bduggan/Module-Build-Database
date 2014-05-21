@@ -21,6 +21,8 @@ $> or do {
 
 my @pg_version = `$Module::Build::Database::PostgreSQL::Bin{Postgres} --version` =~ / (\d+)\.(\d+)\.(\d+)$/m;
 
+diag "pg version : ".join '.', @pg_version;
+
 unless ($pg_version[0] >= 8) {
     plan skip_all => "postgres version must be >= 8.0";
 }
@@ -63,7 +65,11 @@ $ENV{PGDATABASE} = "scooby";
 sysok("$Module::Build::Database::PostgreSQL::Bin{Initdb} -D $dbdir");
 
 open my $fp, ">> $dbdir/postgresql.conf" or die $!;
-print {$fp} qq[unix_socket_directory = '$dbdir'\n];
+if ($pg_version[1] > 2) {
+    print {$fp} qq[unix_socket_directories = '$dbdir'\n];
+} else  {
+    print {$fp} qq[unix_socket_directory = '$dbdir'\n];
+}
 close $fp or die $!;
 
 sysok(qq[$Module::Build::Database::PostgreSQL::Bin{Pgctl} -t 120 -o "-h ''" -w start]);
