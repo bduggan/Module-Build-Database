@@ -155,12 +155,14 @@ sub _do_psql {
     my $self = shift;
     my $sql = shift;
     my $database_name  = $self->database_options('name');
-    my $tmp = File::Temp->new();
+    my $tmp = File::Temp->new(TEMPLATE => "tmp_db_XXXX", SUFFIX => '.sql');
     print $tmp $sql;
     $tmp->close;
     # -q: quiet, ON_ERROR_STOP: throw exceptions
     local $ENV{PERL5LIB};
-    do_system( $Bin{Psql}, "-q", "-v'ON_ERROR_STOP=1'", "-f", "$tmp", $database_name );
+    my $ret = do_system( $Bin{Psql}, "-q", "-v'ON_ERROR_STOP=1'", "-f", "$tmp", $database_name );
+    $tmp->unlink_on_destroy($ret);
+    $ret;
 }
 sub _do_psql_out {
     my $self = shift;

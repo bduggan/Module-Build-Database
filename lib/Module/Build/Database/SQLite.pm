@@ -133,13 +133,15 @@ sub _do_sql_file {
 sub _do_sqlite {
     my $self = shift;
     my $sql = shift;
-    my $tmp = File::Temp->new();
+    my $tmp = File::Temp->new(TEMPLATE => "tmp_db_XXXX", SUFFIX => '.sql');
     print $tmp ".header off\n";
     print $tmp ".mode list\n";
     print $tmp ".separator ' '\n";
     print $tmp $sql;
     $tmp->close;
-    $self->_do_sql_file("$tmp", @_);  # pass @_ which may have an $outfile
+    my $ret = $self->_do_sql_file("$tmp", @_);  # pass @_ which may have an $outfile
+    $tmp->unlink_on_destroy($ret);
+    $ret;
 }
 
 sub _do_sqlite_into_file {
