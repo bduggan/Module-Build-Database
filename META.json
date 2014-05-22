@@ -4,7 +4,7 @@
       "Brian Duggan <brian.duggan@nasa.gov>"
    ],
    "dynamic_config" : 1,
-   "generated_by" : "Module::Build version 0.4005, CPAN::Meta::Converter version 2.120630",
+   "generated_by" : "Module::Build version 0.4203",
    "license" : [
       "perl_5"
    ],
@@ -24,7 +24,7 @@
       },
       "configure" : {
          "requires" : {
-            "Module::Build" : "0.40"
+            "Module::Build" : "0.42"
          }
       },
       "runtime" : {
@@ -34,6 +34,7 @@
             "File::ShareDir" : "0",
             "File::Which" : "0",
             "List::MoreUtils" : "0",
+            "Path::Class" : "0",
             "Sub::Exporter" : "0",
             "blib" : "0",
             "perl" : "v5.10.0"
@@ -46,24 +47,19 @@
          "version" : "0.50"
       },
       "Module::Build::Database::Helpers" : {
-         "file" : "lib/Module/Build/Database/Helpers.pm",
-         "version" : 0
+         "file" : "lib/Module/Build/Database/Helpers.pm"
       },
       "Module::Build::Database::PostgreSQL" : {
-         "file" : "lib/Module/Build/Database/PostgreSQL.pm",
-         "version" : 0
+         "file" : "lib/Module/Build/Database/PostgreSQL.pm"
       },
       "Module::Build::Database::PostgreSQL::Templates" : {
-         "file" : "lib/Module/Build/Database/PostgreSQL/Templates.pm",
-         "version" : 0
+         "file" : "lib/Module/Build/Database/PostgreSQL/Templates.pm"
       },
       "Module::Build::Database::SQLite" : {
-         "file" : "lib/Module/Build/Database/SQLite.pm",
-         "version" : 0
+         "file" : "lib/Module/Build/Database/SQLite.pm"
       },
       "Test::MBD" : {
-         "file" : "lib/Test/MBD.pm",
-         "version" : 0
+         "file" : "lib/Test/MBD.pm"
       }
    },
    "release_status" : "stable",
