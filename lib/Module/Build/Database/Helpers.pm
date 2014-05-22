@@ -22,8 +22,8 @@ sub do_system {
     # Carp::cluck("doing------- @_\n");
     system("@_") == 0
       or do {
-        return 0 if $silent;
-        warn "Error with '@_' : $? " . ( ${^CHILD_ERROR_NATIVE} || '' ) . "\n";
+        return 0 if $silent && !$ENV{HARNESS_ACTIVE};
+        warn "# Error with '@_' : $? " . ( ${^CHILD_ERROR_NATIVE} || '' ) . "\n";
         return 0;
       };
     return 1;
