@@ -65,7 +65,8 @@ which adds functionality for testing and distributing changes to the database.
 Changes are represented as sql files ("patches") which will be fed into a
 command line client for the database.
 
-A complete schema is regenerated whenever L<dbdist|#dbdist> is run.
+A complete schema is regenerated whenever
+L<dbdist|Module::Build::Database#dbdist> is run.
 
 A list of the patches which have been applied is stored in two places :
 
@@ -81,9 +82,11 @@ the table C<patches_applied> within the target database.
 
 =back
 
-When the L<dbinstall|#dbinstall> action is invoked, any patches in (1) but
-not in (2) are applied.  In order to determine whether they will apply
-successfully, L<dbfakeinstall|#dbfakeinstall> may be run, which does the following :
+When the L<dbinstall|Module::Build::Database#dbinstall> action is 
+invoked, any patches in (1) but not in (2) are applied.  In order to 
+determine whether they will apply successfully, 
+L<dbfakeinstall|Module::Build::Database#dbfakeinstall> may be run, which 
+does the following :
 
 =over
 
@@ -255,8 +258,10 @@ Dump out the resulting schema, and compare it to C<db/dist/base.sql>.
 
 =back
 
-Note that L<dbdist|#dbdist> must be run to update C<base.sql> before doing C<dbfakeinstall|#dbfakeinstall>
-or C<dbinstall|#dbinstall>.
+Note that L<dbdist|Module::Build::Database#dbdist> must be run to update 
+C<base.sql> before doing 
+C<dbfakeinstall|Module::Build::Database#dbfakeinstall> or 
+C<dbinstall|Module::Build::Database#dbinstall>.
 
 =head2 dbinstall
 
@@ -282,7 +287,8 @@ Add an entry to the C<patches_applied> table for each patch applied.
 
 =item 1.
 
-Starts a test database based on C<base.sql> and any patches (see L<dbtest|#dbtest>)
+Starts a test database based on C<base.sql> and any patches (see 
+L<dbtest|Module::Build::Database#dbtest>)
 
 =item 2.
 
@@ -315,8 +321,9 @@ Curt Tilmes
 
 =head1 TODO
 
-Allow L<dbclean|#dbclean> to not interfere with other running mbd-test databases.  Currently it
-errs on the side of cleaning up too much.
+Allow L<dbclean|Module::Build::Database#dbclean> to not interfere with 
+other running mbd-test databases.  Currently it errs on the side of 
+cleaning up too much.
 
 =head1 SEE ALSO
 
