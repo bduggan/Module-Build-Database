@@ -1,4 +1,5 @@
-Module-Build-Database -- build a database module::build style.
+Module-Build-Database -- Build a database Module::Build style.  [![Build Status](https://secure.travis-ci.org/bduggan/Module-Build-Database.png)](http://travis-ci.org/bduggan/Module-Build-Database)
+=====================
 
 INSTALLATION
 
