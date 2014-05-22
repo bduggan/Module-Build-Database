@@ -114,6 +114,7 @@ use File::Temp qw/tempdir/;
 use File::Path qw/rmtree/;
 use File::Basename qw/dirname/;
 use File::Copy::Recursive qw/fcopy dirmove/;
+use Path::Class qw/file/;
 use IO::File;
 
 use Module::Build::Database::PostgreSQL::Templates;
@@ -316,22 +317,28 @@ sub _dump_base_sql {
 
     my $tmpfile = File::Temp->new(
         TEMPLATE => (dirname $outfile)."/dump_XXXXXX",
-        UNLINK   => 0
     );
-    $tmpfile->close;
 
     # -x : no privileges, -O : no owner, -s : schema only, -n : only this schema
     my $database_schema = $self->database_options('schema');
     my $database_name   = $self->database_options('name');
-    local $ENV{PERL5LIB};
-    do_system( $Bin{Pgdump}, "-xOs", "-E", "utf8", "-n", $database_schema, $database_name,
-         "|", "egrep -v '^--'",
-         "|", "egrep -v '^CREATE SCHEMA $database_schema;\$'",
-         "|", "egrep -v '^SET search_path'",
-         "|", "$^X -p -e '/alter table/i and s/\\b($database_schema)\.//'",
-        ">", "$tmpfile" )
-      or return 0;
-    rename "$tmpfile", $outfile or die "rename failed: $!";
+    do_system( $Bin{Pgdump}, "-xOs", "-E", "utf8", "-n", $database_schema, $database_name, ">", "$tmpfile" )
+    or do {
+      info "Error running pgdump";
+      return 0;
+    };
+
+    my @lines = file($tmpfile)->slurp();
+    @lines = grep {
+        $_ !~ /^--/
+        and $_ !~ /^CREATE SCHEMA $database_schema;$/
+        and $_ !~ /^SET search_path'/;
+    } @lines;
+    for (@lines) {
+        /alter table/i and s/\\b($database_schema)\.//;
+    }
+    file($outfile)->spew(join '', @lines);
+    return 1;
 }
 
 sub _dump_base_data {

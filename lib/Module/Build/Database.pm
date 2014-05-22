@@ -336,6 +336,7 @@ use File::Basename qw/basename/;
 use File::Path qw/mkpath/;
 use Digest::MD5;
 use List::MoreUtils qw/uniq/;
+use Path::Class qw/file/;
 use warnings;
 use strict;
 
@@ -396,7 +397,7 @@ sub _read_patches_applied_file {
     my %h;
     my $readme = $args{filename} || join '/', $self->base_dir, qw(db dist patches_applied.txt);
     return %h unless -e $readme;
-    my @lines = IO::File->new("<$readme")->getlines;
+    my @lines = file($readme)->slurp;
     for my $line (@lines) {
         my @info = split /\s+/, $line;
         $h{$info[0]} = \@info;

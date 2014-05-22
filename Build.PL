@@ -22,6 +22,7 @@ my $builder = Module::Build->new(
         'List::MoreUtils' => 0,
         'File::Which'     => 0,
         'File::ShareDir'  => 0,
+        'Path::Class'     => 0,
     },
     add_to_cleanup      => [ 'Module-Build-Database-*' ],
     create_makefile_pl => 'traditional',
