@@ -41,6 +41,7 @@ mkpath "$dir/db/patches";
 copy "$src_dir/Build.PL", $dir;
 copy "$src_dir/db/patches/0010_one.sql","$dir/db/patches";
 chdir $dir;
+diag "cwd is $dir";
 
 sysok("$^X -Mblib=$FindBin::Bin/../blib Build.PL");
 
@@ -49,7 +50,9 @@ sysok("./Build dbtest");
 sysok("./Build dbdist");
 
 ok -e "$dir/db/dist/base.sql", "created base.sql";
+ok -s "$dir/db/dist/base.sql", "$dir/db/dist/base.sql has a size > 0";
 ok -e "$dir/db/dist/patches_applied.txt", "created patches_applied.txt";
+ok -s "$dir/db/dist/patches_applied.txt", "$dir/db/dist/patches_applied.txt has a size > 0";
 
 # Now test dbfakeinstall and dbinstall.  Configure the database to be
 # installed to a tempdir.
@@ -86,6 +89,10 @@ like $out, qr/x.*integer/, "made column x type integer";
 sysok("$Module::Build::Database::PostgreSQL::Bin{Pgctl} -D $dbdir -m immediate stop") unless $debug;
 
 chdir '..'; # otherwise file::temp can't clean up
+
+ok -d "$dir", "directory still there";
+
+undef $dir;
 
 1;
 
