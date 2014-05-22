@@ -41,7 +41,6 @@ mkpath "$dir/db/patches";
 copy "$src_dir/Build.PL", $dir;
 copy "$src_dir/db/patches/0010_one.sql","$dir/db/patches";
 chdir $dir;
-diag "cwd is $dir";
 
 sysok("$^X -Mblib=$FindBin::Bin/../blib Build.PL");
 
