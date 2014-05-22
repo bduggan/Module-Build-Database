@@ -87,7 +87,7 @@ MANIFEST			This list of files
 MANIFEST.SKIP
 META.json
 META.yml
-README
+README.md
 t/00-load.t
 t/01-install-postgis.t
 t/02-install-no-postgis.t
