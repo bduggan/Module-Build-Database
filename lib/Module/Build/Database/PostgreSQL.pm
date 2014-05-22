@@ -335,7 +335,7 @@ sub _dump_base_sql {
         and $_ !~ /^SET search_path'/;
     } @lines;
     for (@lines) {
-        /alter table/i and s/\\b($database_schema)\.//;
+        /alter table/i and s/$database_schema\.//;
     }
     file($outfile)->spew(join '', @lines);
     return 1;
