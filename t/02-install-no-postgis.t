@@ -40,9 +40,13 @@ my $debug = 0;
 my $dir = tempdir( CLEANUP => !$debug);
 my $src_dir = "$FindBin::Bin/../eg/PgappNoPostgis";
 mkpath "$dir/db/patches";
-copy "$src_dir/Build.PL", $dir;
-copy "$src_dir/db/patches/0010_one.sql","$dir/db/patches";
-chdir $dir;
+ok copy "$src_dir/Build.PL", $dir;
+ok copy "$src_dir/db/patches/0010_one.sql","$dir/db/patches";
+ok copy "$src_dir/db/patches/0020_two.sql","$dir/db/patches";
+ok copy "$src_dir/db/patches/0030_three.sql","$dir/db/patches";
+ok copy "$src_dir/db/patches/0040_four.sql","$dir/db/patches";
+ok copy "$src_dir/db/patches/0050_five.sql","$dir/db/patches";
+ok chdir $dir;
 
 sysok("$^X -Mblib=$FindBin::Bin/../blib Build.PL");
 
@@ -86,6 +90,9 @@ my $out = do { local $ENV{PERL5LIB}; `psql -c "\\d one"` };
 
 like $out, qr/table.*doo\.one/i, "made table one in schema doo";
 like $out, qr/x.*integer/, "made column x type integer";
+
+my $out2 = do { local $ENV{PERL5LIB}; `psql -c "\\d+ five"` };
+like $out2, qr[± 1], "unicode character okay";
 
 sysok("$Module::Build::Database::PostgreSQL::Bin{Pgctl} -D $dbdir -m immediate stop") unless $debug;
 
