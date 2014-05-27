@@ -1,4 +1,12 @@
 language: perl
+
+script:
+  - perl Build.PL
+  - ./Build
+  - ./Build test --verbose 1
+  - ./Build install
+
 perl:
   - "5.16"
+  - "5.12"
 
