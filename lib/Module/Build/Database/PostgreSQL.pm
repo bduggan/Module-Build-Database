@@ -325,10 +325,14 @@ sub _dump_base_sql {
     do_system( $Bin{Pgdump}, "-xOs", "-E", "utf8", "-n", $database_schema, $database_name, ">", "$tmpfile" )
     or do {
       info "Error running pgdump";
+      die "Error running pgdump : $! ${^CHILD_ERROR_NATIVE}";
       return 0;
     };
 
     my @lines = file($tmpfile)->slurp();
+    unless (@lines) {
+        die "# Could not run pgdump and write to $tmpfile";
+    }
     @lines = grep {
         $_ !~ /^--/
         and $_ !~ /^CREATE SCHEMA $database_schema;$/
@@ -338,6 +342,9 @@ sub _dump_base_sql {
         /alter table/i and s/$database_schema\.//;
     }
     file($outfile)->spew(join '', @lines);
+    if (@lines > 0 && !-s $outfile) {
+        die "# Unable to write to $outfile";
+    }
     return 1;
 }
 
