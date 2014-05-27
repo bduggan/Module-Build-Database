@@ -36,11 +36,11 @@ sub verify_bin {
         my @look_for = (ref $bin->{$label} eq 'ARRAY' ? @{ $bin->{$label} } : $bin->{$label});
         my $found;
         for my $potential_cmd (@look_for) {
-            last if $found = which $potential_cmd;
             if(defined $try && -x "$try/$potential_cmd") {
                 $found = "$try/$potential_cmd";
                 last;
             }
+            last if $found = which $potential_cmd;
         }
         unless ($found) {
             warn "could not find ".(join " or ",@look_for)." in current path\n" unless $label =~ /doc/;
