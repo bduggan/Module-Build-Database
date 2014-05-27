@@ -2,6 +2,8 @@ Revision history for Module-Build-Database
 
 0.51   Wed May 21 12:27:25 MDT 2014
        Leave temp files for errors (gollis)
+       Fixes for 9.3 (bduggan)
+       Fixes for travis (gollis + bduggan)
 
 0.50   Sun Aug 25 08:34:08 EDT 2013
        Updated min perl version
