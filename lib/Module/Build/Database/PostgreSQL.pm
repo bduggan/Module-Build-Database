@@ -116,6 +116,7 @@ use File::Basename qw/dirname/;
 use File::Copy::Recursive qw/fcopy dirmove/;
 use Path::Class qw/file/;
 use IO::File;
+use File::Which qw( which );
 
 use Module::Build::Database::PostgreSQL::Templates;
 use Module::Build::Database::Helpers qw/do_system verify_bin info debug/;
@@ -139,16 +140,11 @@ our %Bin = (
     Pgdoc      => [ qw/pg_autodoc postgresql_autodoc/ ],
 );
 my $server_bin_dir;
-if(-d "/usr/lib/postgresql/") {
-    # Debian/Ubuntu doesn't put server bins in the default PATH
-    if(opendir my $dh, "/usr/lib/postgresql") {
-        ($server_bin_dir) = grep { -d $_ && -x "$_/postgres" } 
-                            map { "/usr/lib/postgresql/$_/bin" } 
-                            sort { my @a = split /\./, $a; my @b = split /\./, $b; $b[0] <=> $a[0] || $b[1] <=> $a[1] }
-                            grep { /^\d+\.\d+$/ }
-                            readdir $dh;
-        closedir $dh;
-    }
+if(my $pg_config = which 'pg_config')
+{
+  $server_bin_dir = `$pg_config --bindir`;
+  chomp $server_bin_dir;
+  undef $server_bin_dir unless -d $server_bin_dir;
 }
 verify_bin(\%Bin, $server_bin_dir);
 
