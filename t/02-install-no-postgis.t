@@ -11,6 +11,8 @@ use Module::Build::Database::PostgreSQL;
 use lib $FindBin::Bin.'/tlib';
 use misc qw/sysok/;
 
+$ENV{LC_ALL} = 'C';
+
 if($Module::Build::Database::PostgreSQL::Bin{Postgres} eq '/bin/false') {
     plan skip_all => "Cannot find postgres executable";
 }
