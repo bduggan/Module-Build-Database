@@ -55,7 +55,7 @@ sub have_db_cli {
 sub _show_live_db {
     my $self = shift;
     my $name = shift || $self->database_options('name');
-    info "database : ".abs_path($name);
+    info "database : ". (eval { abs_path($name) } || $name);
 }
 
 sub _is_fresh_install {
