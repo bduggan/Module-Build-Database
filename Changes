@@ -1,5 +1,8 @@
 Revision history for Module-Build-Database
 
+0.52   Thu May 29 12:27:59 MDT 2014
+       Fixed bug from last release.
+
 0.51   Wed May 21 12:27:25 MDT 2014
        Leave temp files for errors (gollis)
        Fixes for 9.3 (bduggan)
