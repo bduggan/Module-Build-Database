@@ -333,7 +333,7 @@ sub _dump_base_sql {
     @lines = grep {
         $_ !~ /^--/
         and $_ !~ /^CREATE SCHEMA $database_schema;$/
-        and $_ !~ /^SET search_path'/;
+        and $_ !~ /^SET search_path/;
     } @lines;
     for (@lines) {
         /alter table/i and s/$database_schema\.//;
