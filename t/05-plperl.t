@@ -15,7 +15,7 @@ plan skip_all => 'set TEST_PLPERL to enable test' unless $ENV{TEST_PLPERL};
 plan skip_all => 'Cannot find postgres executable'
   if $Module::Build::Database::PostgreSQL::Bin{Postgres} eq '/bin/false';
 plan skip_all => 'Cannot test postgres as root'
-  unless $>;
+  unless $> or $^O eq 'MSWin32';
 
 my @pg_version = `$Module::Build::Database::PostgreSQL::Bin{Postgres} --version` =~ / (\d+)\.(\d+)\.(\d+)$/m;
 

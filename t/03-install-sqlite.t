@@ -6,6 +6,7 @@ use File::Path qw/mkpath/;
 use File::Copy qw/copy/;
 use Module::Build::Database::SQLite;
 use FindBin;
+use Path::Class qw( dir );
 
 plan skip_all => "no sqlite executable"
     unless Module::Build::Database::SQLite->have_db_cli;
@@ -24,9 +25,11 @@ chdir $dir;
 
 sysok("$^X -Mblib=$FindBin::Bin/../blib Build.PL");
 
-sysok("./Build dbtest");
+my $Build = dir('.')->file('Build');
 
-sysok("./Build dbdist");
+sysok("$Build dbtest");
+
+sysok("$Build dbdist");
 
 ok -e "$dir/db/dist/base.sql", "created base.sql";
 ok -e "$dir/db/dist/patches_applied.txt", "created patches_applied.txt";
@@ -37,9 +40,9 @@ ok -e "$dir/db/dist/patches_applied.txt", "created patches_applied.txt";
 my $tmpdir = tempdir(CLEANUP => 0);
 my $dbdir  = "$tmpdir/dbtest";
 
-sysok("./Build dbfakeinstall");
+sysok("$Build dbfakeinstall");
 
-sysok("./Build dbinstall");
+sysok("$Build dbinstall");
 
 #
 # TODO: sqlite support needs work.
