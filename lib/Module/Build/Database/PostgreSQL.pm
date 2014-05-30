@@ -128,6 +128,9 @@ __PACKAGE__->add_property(database_extensions => default => { postgis => 0 } );
 __PACKAGE__->add_property(postgis_base        => default => "/usr/local/share/postgis" );
 __PACKAGE__->add_property(_tmp_db_dir         => default => "" );
 __PACKAGE__->add_property(leave_running       => default => 0 ); # leave running after dbtest?
+__PACKAGE__->add_property(scratch_database    => default => { map {; "PG$_" => $ENV{"MBD_SCRATCH_PG$_"} } 
+                                                              grep { defined $ENV{"MBD_SCRATCH_PG$_"} } 
+                                                              qw( HOST PORT USER ) } );
 
 # Binaries used by this module.  They should be in $ENV{PATH}.
 our %Bin = (
@@ -136,6 +139,7 @@ our %Bin = (
     Postgres   => 'postgres',
     Initdb     => 'initdb',
     Createdb   => 'createdb',
+    Dropdb     => 'dropdb',
     Pgdump     => 'pg_dump',
     Pgdoc      => [ qw/pg_autodoc postgresql_autodoc/ ],
 );
@@ -225,38 +229,46 @@ sub _start_new_db {
     my $self = shift;
     # Start a new database and return the host on which it was started.
 
-    $self->_cleanup_old_dbs();
-
     my $database_name   = $self->database_options('name');
-    my $database_schema = $self->database_options('schema');
-    my $tmpdir          = tempdir("mbdtest_XXXXXX", TMPDIR => 1);
-    my $dbdir           = $tmpdir."/db";
-    my $initlog         = "$tmpdir/postgres.log";
-    $self->_tmp_db_dir($dbdir);
-
-    $ENV{PGHOST}     = "$dbdir"; # makes psql use a socket, not a tcp port
     $ENV{PGDATABASE} = $database_name;
-    delete $ENV{PGUSER};
-    delete $ENV{PGPORT};
 
-    debug "initializing database (log: $initlog)";
+    if(%{ $self->scratch_database }) {
+        delete @ENV{qw( PGHOST PGUSER PGPORT )};
+        %ENV = (%ENV, %{ $self->scratch_database });
+        do_system("_silent", $Bin{Dropdb}, $database_name);
 
-    do_system($Bin{Initdb}, "-D", "$dbdir", ">>", "$initlog", "2>&1") or die "could not initdb";
+    } else {
 
-    if (my $conf_append = $self->database_options('append_to_conf')) {
-        die "cannot find postgresql.conf" unless -e "$dbdir/postgresql.conf";
-        open my $fp, ">> $dbdir/postgresql.conf" or die "could not open postgresql.conf : $!";
-        print $fp $conf_append;
-        close $fp;
+        $self->_cleanup_old_dbs();
+
+        my $tmpdir          = tempdir("mbdtest_XXXXXX", TMPDIR => 1);
+        my $dbdir           = $tmpdir."/db";
+        my $initlog         = "$tmpdir/postgres.log";
+        $self->_tmp_db_dir($dbdir);
+
+        $ENV{PGHOST}     = "$dbdir"; # makes psql use a socket, not a tcp port
+        delete $ENV{PGUSER};
+        delete $ENV{PGPORT};
+
+        debug "initializing database (log: $initlog)";
+
+        do_system($Bin{Initdb}, "-D", "$dbdir", ">>", "$initlog", "2>&1") or die "could not initdb";
+
+        if (my $conf_append = $self->database_options('append_to_conf')) {
+            die "cannot find postgresql.conf" unless -e "$dbdir/postgresql.conf";
+            open my $fp, ">> $dbdir/postgresql.conf" or die "could not open postgresql.conf : $!";
+            print $fp $conf_append;
+            close $fp;
+        }
+
+        my $pmopts = qq[-k $dbdir -h '' -p 5432];
+
+        debug "# starting postgres in $dbdir";
+        do_system($Bin{Pgctl}, qq[-o "$pmopts"], "-w", "-t", 120, "-D", "$dbdir", "-l", "postmaster.log", "start") or die "could not start postgres";
+
+        my $domain = $dbdir.'/.s.PGSQL.5432';
+        -e $domain or die "could not find $domain";
     }
-
-    my $pmopts = qq[-k $dbdir -h '' -p 5432];
-
-    debug "# starting postgres in $dbdir";
-    do_system($Bin{Pgctl}, qq[-o "$pmopts"], "-w", "-t", 120, "-D", "$dbdir", "-l", "postmaster.log", "start") or die "could not start postgres";
-
-    my $domain = $dbdir.'/.s.PGSQL.5432';
-    -e $domain or die "could not find $domain";
 
     $self->_create_database();
 
@@ -265,7 +277,7 @@ sub _start_new_db {
 
 sub _remove_db {
     my $self = shift;
-    return if $ENV{MBD_DONT_STOP_TEST_DB};
+    return if $ENV{MBD_DONT_STOP_TEST_DB} || %{ $self->scratch_database };
     my $dbdir = shift || $self->_tmp_db_dir();
     $dbdir =~ s/\/db$//;
     rmtree $dbdir;
@@ -273,7 +285,7 @@ sub _remove_db {
 
 sub _stop_db {
     my $self = shift;
-    return if $ENV{MBD_DONT_STOP_TEST_DB};
+    return if $ENV{MBD_DONT_STOP_TEST_DB} || %{ $self->scratch_database };
     my $dbdir = shift || $self->_tmp_db_dir();
     my $pid_file = "$dbdir/postmaster.pid";
     unless (-e $pid_file) {
@@ -583,7 +595,7 @@ sub ACTION_dbinstall     { shift->SUPER::ACTION_dbinstall(@_);     }
 sub ACTION_dbfakeinstall { shift->SUPER::ACTION_dbfakeinstall(@_); }
 
 sub _dbhost {
-    return $ENV{PGHOST};
+    return $ENV{PGHOST} || 'localhost';
 }
 
 1;
