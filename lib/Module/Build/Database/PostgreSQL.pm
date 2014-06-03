@@ -161,7 +161,7 @@ sub _do_psql {
     $tmp->close;
     # -q: quiet, ON_ERROR_STOP: throw exceptions
     local $ENV{PERL5LIB};
-    my $ret = do_system( $Bin{Psql}, "-q", "-v'ON_ERROR_STOP=1'", "-f", "$tmp", $database_name );
+    my $ret = do_system( $Bin{Psql}, "-q", "-vON_ERROR_STOP=1", "-f", "$tmp", $database_name );
     $tmp->unlink_on_destroy($ret);
     $ret;
 }
@@ -171,7 +171,7 @@ sub _do_psql_out {
     my $database_name  = $self->database_options('name');
     # -F field separator, -x extended output, -A: unaligned
     local $ENV{PERL5LIB};
-    do_system( $Bin{Psql}, "-q", "-v'ON_ERROR_STOP=1'", "-A", "-F ' : '", "-x", "-c", qq["$sql"], $database_name );
+    do_system( $Bin{Psql}, "-q", "-vON_ERROR_STOP=1", "-A", "-F ' : '", "-x", "-c", qq["$sql"], $database_name );
 }
 sub _do_psql_file {
     my $self = shift;
@@ -187,7 +187,7 @@ sub _do_psql_file {
     my $database_name  = $self->database_options('name');
     # -q: quiet, ON_ERROR_STOP: throw exceptions
     local $ENV{PERL5LIB};
-    do_system($Bin{Psql},"-q","-v'ON_ERROR_STOP=1'","-f",$filename, $database_name);
+    do_system($Bin{Psql},"-q","-vON_ERROR_STOP=1","-f",$filename, $database_name);
 }
 sub _do_psql_into_file {
     my $self = shift;
@@ -196,7 +196,7 @@ sub _do_psql_into_file {
     my $database_name  = $self->database_options('name');
     # -A: unaligned, -F: field separator, -t: tuples only, ON_ERROR_STOP: throw exceptions
     local $ENV{PERL5LIB};
-    do_system( $Bin{Psql}, "-q", "-v'ON_ERROR_STOP=1'", "-A", "-F '\t'", "-t", "-c", qq["$sql"], $database_name, ">", "$filename" );
+    do_system( $Bin{Psql}, "-q", "-vON_ERROR_STOP=1", "-A", "-F '\t'", "-t", "-c", qq["$sql"], $database_name, ">", "$filename" );
 }
 sub _do_psql_capture {
     my $self = shift;
