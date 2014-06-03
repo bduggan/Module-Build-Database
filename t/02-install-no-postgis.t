@@ -1,5 +1,7 @@
 #!perl
 
+use strict;
+use warnings;
 use Test::More;
 use File::Temp qw/tempdir/;
 use File::Path qw/mkpath/;
@@ -25,13 +27,15 @@ $> or $^O eq 'MSWin32' or do {
     plan skip_all => "Cannot test postgres as root";
 };
 
-unless($scratch_db_server) {
+my @pg_version;
+
+unless($scratch_db_server && $test_db_server) {
 
     if($Module::Build::Database::PostgreSQL::Bin{Postgres} eq '/bin/false') {
         plan skip_all => "Cannot find postgres executable";
     }
 
-    my @pg_version = `$Module::Build::Database::PostgreSQL::Bin{Postgres} --version` =~ / (\d+)\.(\d+)\.(\d+)$/m;
+    @pg_version = `$Module::Build::Database::PostgreSQL::Bin{Postgres} --version` =~ / (\d+)\.(\d+)\.(\d+)$/m;
 
     diag "pg version : ".join '.', @pg_version;
 
@@ -89,7 +93,7 @@ if($test_db_server) {
             delete $ENV{$key};
         }
     }
-    if(scalar grep /^scooby$/, map { [split /:/]->[0] } `$pql -Alt -F:`) {
+    if(scalar grep /^scooby$/, map { [split /:/]->[0] } `$psql -Alt -F:`) {
         sysok("$Module::Build::Database::PostgreSQL::Bin{Dropdb} scooby");
     }
 } else {
@@ -114,12 +118,12 @@ sysok("$Build dbfakeinstall");
 
 sysok("$Build dbinstall");
 
-my $out = do { local $ENV{PERL5LIB}; `$pql -c "\\d one"` };
+my $out = do { local $ENV{PERL5LIB}; `$psql -c "\\d one"` };
 
 like $out, qr/table.*doo\.one/i, "made table one in schema doo";
 like $out, qr/x.*integer/, "made column x type integer";
 
-my $out2 = do { local $ENV{PERL5LIB}; `$pql -c "\\d+ five"` };
+my $out2 = do { local $ENV{PERL5LIB}; `$psql -c "\\d+ five"` };
 like $out2, qr[± 1], "unicode character okay";
 
 unless($test_db_server) {
