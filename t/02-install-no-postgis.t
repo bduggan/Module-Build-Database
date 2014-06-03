@@ -7,6 +7,7 @@ use File::Copy qw/copy/;
 use IO::Socket::INET;
 use FindBin;
 use Module::Build::Database::PostgreSQL;
+use Path::Class qw( dir );
 
 use lib $FindBin::Bin.'/tlib';
 use misc qw/sysok/;
@@ -60,9 +61,11 @@ ok chdir $dir;
 
 sysok("$^X -Mblib=$FindBin::Bin/../blib Build.PL");
 
-sysok("./Build dbtest");
+my $Build = dir('.')->file('Build');
 
-sysok("./Build dbdist");
+sysok("$Build dbtest");
+
+sysok("$Build dbdist");
 
 ok -e "$dir/db/dist/base.sql", "created base.sql";
 ok -s "$dir/db/dist/base.sql", "$dir/db/dist/base.sql has a size > 0";
@@ -76,6 +79,8 @@ my $tmpdir = tempdir(CLEANUP => 0);
 my $dbdir  = "$tmpdir/dbtest";
 $ENV{PGDATABASE} = "scooby";
 
+my $psql = $Module::Build::Database::PostgreSQL::Bin{Psql};
+
 if($test_db_server) {
     foreach my $key (qw( PGHOST PGPORT PGUSER )) {
         if(defined $ENV{"MBD_TEST_$key"}) {
@@ -84,7 +89,7 @@ if($test_db_server) {
             delete $ENV{$key};
         }
     }
-    if(scalar grep /^scooby$/, map { [split /:/]->[0] } `psql -Alt -F:`) {
+    if(scalar grep /^scooby$/, map { [split /:/]->[0] } `$pql -Alt -F:`) {
         sysok("$Module::Build::Database::PostgreSQL::Bin{Dropdb} scooby");
     }
 } else {
@@ -105,16 +110,16 @@ if($test_db_server) {
     sysok(qq[$Module::Build::Database::PostgreSQL::Bin{Pgctl} -t 120 -o "-h ''" -w start]);
 }
 
-sysok("./Build dbfakeinstall");
+sysok("$Build dbfakeinstall");
 
-sysok("./Build dbinstall");
+sysok("$Build dbinstall");
 
-my $out = do { local $ENV{PERL5LIB}; `psql -c "\\d one"` };
+my $out = do { local $ENV{PERL5LIB}; `$pql -c "\\d one"` };
 
 like $out, qr/table.*doo\.one/i, "made table one in schema doo";
 like $out, qr/x.*integer/, "made column x type integer";
 
-my $out2 = do { local $ENV{PERL5LIB}; `psql -c "\\d+ five"` };
+my $out2 = do { local $ENV{PERL5LIB}; `$pql -c "\\d+ five"` };
 like $out2, qr[± 1], "unicode character okay";
 
 unless($test_db_server) {

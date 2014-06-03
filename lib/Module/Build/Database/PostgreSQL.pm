@@ -148,6 +148,7 @@ if(my $pg_config = which 'pg_config')
 {
   $server_bin_dir = `$pg_config --bindir`;
   chomp $server_bin_dir;
+  $server_bin_dir = Win32::GetShortPathName($server_bin_dir) if $^O eq 'MSWin32' && $server_bin_dir =~ /\s/;
   undef $server_bin_dir unless -d $server_bin_dir;
 }
 verify_bin(\%Bin, $server_bin_dir);

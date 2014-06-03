@@ -47,6 +47,7 @@ sub verify_bin {
             $found = "/bin/false";
         }
         chomp $found;
+        $found = Win32::GetShortPathName($found) if $^O eq 'MSWin32' && $found =~ /\s/;
         $bin->{$label} = $found;
     }
 }
