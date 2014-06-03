@@ -345,7 +345,7 @@ sub _dump_base_sql {
     @lines = grep {
         $_ !~ /^--/
         and $_ !~ /^CREATE SCHEMA $database_schema;$/
-        and $_ !~ /^SET search_path/;
+        and $_ !~ /^SET (search_path|lock_timeout)/
     } @lines;
     for (@lines) {
         /alter table/i and s/$database_schema\.//;
@@ -374,7 +374,7 @@ sub _dump_base_data {
     my $database_name   = $self->database_options('name');
     local $ENV{PERL5LIB};
     do_system( $Bin{Pgdump}, "--data-only", "-xO", "-E", "utf8", "-n", $database_schema, $database_name,
-        "|", "egrep -v '^SET search_path'",
+        "|", "egrep -v '^SET (lock_timeout|search_path)'",
         ">", "$tmpfile" )
       or return 0;
     rename "$tmpfile", $outfile or die "rename failed: $!";
