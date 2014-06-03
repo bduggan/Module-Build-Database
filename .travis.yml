@@ -1,5 +1,13 @@
 language: perl
 
+addons:
+  postgresql: "9.3"
+
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install postgresql-plperl-9.3
+  - sudo apt-get install postgresql-plperl-9.1
+
 script:
   - perl Build.PL
   - ./Build
@@ -10,3 +18,6 @@ perl:
   - "5.16"
   - "5.12"
 
+env:
+  - TEST_PLPERL=1 TEST_POSTGIS_BASE=/usr/share/postgresql/9.3/contrib/postgis-2.1 MBD_SCRATCH_PGHOST=localhost MBD_SCRATCH_PGPORT=5432
+  - TEST_PLPERL=1 TEST_POSTGIS_BASE=/usr/share/postgresql/9.3/contrib/postgis-2.1
