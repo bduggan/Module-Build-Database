@@ -146,6 +146,7 @@ our %Bin = (
 my $server_bin_dir;
 if(my $pg_config = which 'pg_config')
 {
+  $pg_config = Win32::GetShortPathName($pg_config) if $^O eq 'MSWin32' && $pg_config =~ /\s/;
   $server_bin_dir = `$pg_config --bindir`;
   chomp $server_bin_dir;
   $server_bin_dir = Win32::GetShortPathName($server_bin_dir) if $^O eq 'MSWin32' && $server_bin_dir =~ /\s/;
@@ -197,7 +198,8 @@ sub _do_psql_into_file {
     my $database_name  = $self->database_options('name');
     # -A: unaligned, -F: field separator, -t: tuples only, ON_ERROR_STOP: throw exceptions
     local $ENV{PERL5LIB};
-    do_system( $Bin{Psql}, "-q", "-vON_ERROR_STOP=1", "-A", "-F '\t'", "-t", "-c", qq["$sql"], $database_name, ">", "$filename" );
+    my $q = $^O eq 'MSWin32' ? '"' : "'";
+    do_system( $Bin{Psql}, "-q", "-vON_ERROR_STOP=1", "-A", "-F $q\t$q", "-t", "-c", qq["$sql"], $database_name, ">", "$filename" );
 }
 sub _do_psql_capture {
     my $self = shift;
@@ -324,22 +326,20 @@ sub _dump_base_sql {
     my %args = @_;
     my $outfile = $args{outfile} || $self->base_dir. "/db/dist/base.sql";
 
-    my $tmpfile = File::Temp->new(
-        TEMPLATE => (dirname $outfile)."/dump_XXXXXX",
-    );
+    my $tmpfile = file( tempdir( CLEANUP => 1 ), 'dump.sql');
 
     # -x : no privileges, -O : no owner, -s : schema only, -n : only this schema
     my $database_schema = $self->database_options('schema');
     my $database_name   = $self->database_options('name');
     local $ENV{PERL5LIB};
-    do_system( $Bin{Pgdump}, "-xOs", "-E", "utf8", "-n", $database_schema, $database_name, ">", "$tmpfile" )
+    do_system( $Bin{Pgdump}, "-xOs", "-E", "utf8", "-n", $database_schema, $database_name, ">", $tmpfile )
     or do {
       info "Error running pgdump";
       die "Error running pgdump : $! ${^CHILD_ERROR_NATIVE}";
       return 0;
     };
 
-    my @lines = file($tmpfile)->slurp();
+    my @lines = $tmpfile->slurp();
     unless (@lines) {
         die "# Could not run pgdump and write to $tmpfile";
     }
@@ -463,7 +463,7 @@ sub _database_exists {
     my $self  =  shift;
     my $database_name = shift || $self->database_options('name');
     local $ENV{PERL5LIB};
-    do_system("_silent","psql -Alt -F ':' | egrep -q '^$database_name:'");
+    scalar grep /^$database_name$/, map { [split /:/]->[0] } `psql -Alt -F:`;
 }
 
 sub _create_language_extensions {
