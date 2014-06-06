@@ -29,7 +29,13 @@ $> or $^O eq 'MSWin32' or do {
 
 my @pg_version;
 
-unless($scratch_db_server && $test_db_server) {
+if($scratch_db_server && $test_db_server) {
+
+    if($Module::Build::Database::PostgreSQL::Bin{Psql}  eq '/bin/false') {
+        plan skip_all => "Cannot find psql executable";
+    }
+
+} else {
 
     if($Module::Build::Database::PostgreSQL::Bin{Postgres} eq '/bin/false') {
         plan skip_all => "Cannot find postgres executable";
