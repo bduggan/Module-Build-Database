@@ -38,6 +38,10 @@ The options are as follows ;
 
 =over 4
 
+=item database_options
+
+=over 4
+
 =item name
 
 the name of the database (i.e. 'create database $name')
@@ -74,6 +78,8 @@ during an initial L<dbinstall|Module::Build::Database#dbinstall>; when the targe
 An example of using the after_create statement would be to create a second schema which
 will not be managed by MBD, but on which the MBD-managed schema depends.
 
+=back
+
 =item database_extension 
 
 To specify a server side procedural language you can use the C<database_extension> -E<gt> C<languages>
@@ -94,6 +100,56 @@ This is also similar to
 
 except it is executed on B<every> L<dbinstall|Module::Build::Database#dbinstall> meaning you can use this to add extensions to
 existing database deployments.
+
+=item postgis_base
+
+Specify the directory containing postgis.sql and spatial_ref_sys.sql.  If specified these SQL files will be loaded so that
+you can use PostGIS in your database.
+
+=item leave_running
+
+If set to true, and if you are not using a persistent scratch database (see next option), then the scratch database will
+not be stopped and torn down after running C<Build dbtest> or C<Build dbfakeinstall>.
+
+=item scratch_database
+
+You can use this option to specify the connection settings for a persistent scratch or temporary database instance, used by
+the C<Build dbtest> and C<Build dbfakeinstall> to test schema.  B<IMPORTANT>: the C<Build dbtest> and C<Build dbfakeinstall>
+will drop and re-create databases on the scratch instance with the same name as the database on your production instance so
+it is I<very> important that if you use a persistent scratch database that it be dedicated to that task.
+
+ my $builder = Module::Build::Database->new(
+   scratch_database => {
+     PGHOST => 'databasehost',
+     PGPORT => '5555',
+     PGUSER => 'dbuser',
+   },
+ );
+
+If you specify any one of these keys for this option (C<PGHOST>, C<PGPORT>, C<PGUSER>) then MBD will use a persistent
+scratch database.  Any missing values will use the default.
+
+You can also specify these settings using environment variables:
+
+ % export MBD_SCRATCH_PGHOST=databasehost
+ % export MBD_SCRATCH_PGPORT=5555
+ % export MBD_SCRATCH_PGUSER=dbuser
+
+By default this module will create its own scratch PostgreSQL instance that uses unix domain sockets for communication 
+each time it needs one when you use the C<Build dbtest> or C<Build dbfakeinstall> commands.  Situations where you might
+need to use a persistent scratch database:
+
+=over 4
+
+=item 1.
+
+The server and server binaries are hosted on a system different to the one that you are doing development
+
+=item 2.
+
+You are using MBD on Windows where unix domain sockets are not available
+
+=back
 
 =back
 
