@@ -25,6 +25,8 @@ package Module::Build::Database::SQLite;
 use base 'Module::Build::Database';
 use Module::Build::Database::Helpers qw/do_system verify_bin debug info/;
 
+use Path::Class qw( tempdir );
+use File::Copy qw( copy );
 use File::Temp;
 use File::Basename qw/dirname/;
 use Cwd qw/abs_path/;
@@ -55,7 +57,7 @@ sub have_db_cli {
 sub _show_live_db {
     my $self = shift;
     my $name = shift || $self->database_options('name');
-    info "database : ".abs_path($name);
+    info "database : ". (eval { abs_path($name) } || $name);
 }
 
 sub _is_fresh_install {
@@ -155,10 +157,10 @@ sub _do_sqlite_into_file {
 sub _do_sqlite_getlines {
     my $self = shift;
     my $sql      = shift;
-    my $filename = File::Temp->new();
+    my $filename = tempdir(CLEANUP=>1)->file("tmp.sql");
     debug "doing $sql";
     $self->_do_sqlite($sql,$filename);
-    my @result = $filename->getlines;
+    my @result = $filename->slurp;
     return @result;
 }
 
@@ -215,17 +217,19 @@ sub _dump_base_data {
 
     my $tmpfile = File::Temp->new(
         TEMPLATE => (dirname $outfile)."/dump_XXXXXX",
-        UNLINK   => 0
+        UNLINK   => 1,
     );
     debug "dumping base_data.sql";
 
     my ($tables) = $self->_do_sqlite_getlines(qq[.tables]);
     for my $table (split /\s+/, $tables) {
-        my $more = File::Temp->new();
-        $self->_do_sqlite(qq[.output $more\n.mode insert $table\nselect * from $table;\n.exit\n]);
-        $tmpfile->print($_) for $more->getlines;
+        my $more = tempdir(CLEANUP => 1)->file("more.sql");
+        my $more_safe_fn = $more;
+        $more_safe_fn =~ s{\\}{/}g;
+        $self->_do_sqlite(qq[.output $more_safe_fn\n.mode insert $table\nselect * from $table;\n.exit\n]);
+        $tmpfile->print($_) for $more->slurp;
     }
-    rename "$tmpfile", $outfile or die "rename failed: $!";
+    copy $tmpfile, $outfile or die "copy failed: $!";
 }
 
 sub _stop_db {
