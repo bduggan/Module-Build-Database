@@ -1,5 +1,8 @@
 Revision history for Module-Build-Database
 
+0.55   Sun Oct 19 15:53:18 EDT 2014
+       Put $VERSION everywhere to fix issues with cpan and old MBD versions
+
 0.54   Sun Oct 19 15:32:25 EDT 2014
        Made dbdist use base_data.sql
 
