@@ -42,4 +42,4 @@ requires:
   perl: v5.10.0
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.54
+version: 0.55

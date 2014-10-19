@@ -1,7 +1,7 @@
 package Module::Build::Database::Helpers;
 use strict;
 use warnings;
-our $VERSION = '0.54';
+our $VERSION = '0.55';
 
 use File::Which qw( which );
 
