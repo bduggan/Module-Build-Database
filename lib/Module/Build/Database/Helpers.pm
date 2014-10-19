@@ -1,6 +1,8 @@
 package Module::Build::Database::Helpers;
 use strict;
 use warnings;
+our $VERSION = '0.54';
+
 use File::Which qw( which );
 
 use Sub::Exporter -setup => {
