@@ -497,6 +497,9 @@ sub ACTION_dbdist {
         warn "creating new base.sql\n";
     }
 
+    # 2.1 Apply base data
+    $self->_apply_base_data();
+
     # 3. For every pending patch, apply, and add to patches_applied.txt.
     my %applied = $self->_read_patches_applied_file();
     my @todo    = $self->_find_patch_files( pending => 1 );

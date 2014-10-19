@@ -1,5 +1,8 @@
 Revision history for Module-Build-Database
 
+0.54   Sun Oct 19 15:32:25 EDT 2014
+       Made dbdist use base_data.sql
+
 0.53   Mon Jun  9 11:13:42 EDT 2014
        scratch database options (gollis)
 
