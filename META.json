@@ -44,22 +44,27 @@
    "provides" : {
       "Module::Build::Database" : {
          "file" : "lib/Module/Build/Database.pm",
-         "version" : "0.54"
+         "version" : "0.55"
       },
       "Module::Build::Database::Helpers" : {
-         "file" : "lib/Module/Build/Database/Helpers.pm"
+         "file" : "lib/Module/Build/Database/Helpers.pm",
+         "version" : "0.55"
       },
       "Module::Build::Database::PostgreSQL" : {
-         "file" : "lib/Module/Build/Database/PostgreSQL.pm"
+         "file" : "lib/Module/Build/Database/PostgreSQL.pm",
+         "version" : "0.55"
       },
       "Module::Build::Database::PostgreSQL::Templates" : {
-         "file" : "lib/Module/Build/Database/PostgreSQL/Templates.pm"
+         "file" : "lib/Module/Build/Database/PostgreSQL/Templates.pm",
+         "version" : "0.55"
       },
       "Module::Build::Database::SQLite" : {
-         "file" : "lib/Module/Build/Database/SQLite.pm"
+         "file" : "lib/Module/Build/Database/SQLite.pm",
+         "version" : "0.55"
       },
       "Test::MBD" : {
-         "file" : "lib/Test/MBD.pm"
+         "file" : "lib/Test/MBD.pm",
+         "version" : "0.55"
       }
    },
    "release_status" : "stable",
@@ -68,5 +73,5 @@
          "http://dev.perl.org/licenses/"
       ]
    },
-   "version" : "0.54"
+   "version" : "0.55"
 }
