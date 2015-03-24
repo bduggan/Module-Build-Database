@@ -4,21 +4,21 @@ use ExtUtils::MakeMaker;
 WriteMakefile
 (
   'PREREQ_PM' => {
-                   'blib' => 0,
-                   'Sub::Exporter' => 0,
+                   'File::Which' => 0,
+                   'IO::Socket::INET' => 0,
                    'File::Copy::Recursive' => 0,
+                   'Path::Class' => 0,
+                   'Test::More' => 0,
+                   'Sub::Exporter' => 0,
                    'Digest::MD5' => 0,
                    'List::MoreUtils' => 0,
-                   'Path::Class' => 0,
                    'File::ShareDir' => 0,
-                   'IO::Socket::INET' => 0,
-                   'Test::More' => 0,
-                   'File::Which' => 0
+                   'blib' => 0
                  },
   'VERSION_FROM' => 'lib/Module/Build/Database.pm',
-  'NAME' => 'Module::Build::Database',
-  'PL_FILES' => {},
   'INSTALLDIRS' => 'site',
-  'EXE_FILES' => []
+  'PL_FILES' => {},
+  'EXE_FILES' => [],
+  'NAME' => 'Module::Build::Database'
 )
 ;
