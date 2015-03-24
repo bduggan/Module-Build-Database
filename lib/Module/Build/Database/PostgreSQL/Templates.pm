@@ -9,7 +9,7 @@ Templates used to generate documentation for a postgres database.
 =cut
 
 package Module::Build::Database::PostgreSQL::Templates;
-our $VERSION = '0.55';
+our $VERSION = '0.56';
 
 sub filenames {
     return qw/header.tmpl footer.tmpl html.tmpl pod.tmpl dot.tmpl/;

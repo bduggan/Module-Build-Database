@@ -178,7 +178,7 @@ use Module::Build::Database::PostgreSQL::Templates;
 use Module::Build::Database::Helpers qw/do_system verify_bin info debug/;
 use strict;
 use warnings;
-our $VERSION = '0.55';
+our $VERSION = '0.56';
 
 __PACKAGE__->add_property(database_options    => default => { name => "foo", schema => "bar" });
 __PACKAGE__->add_property(database_extensions => default => { postgis => 0 } );
