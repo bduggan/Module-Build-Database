@@ -11,7 +11,6 @@ my $builder = Module::Build->new(
         'Test::More' => 0,
         'File::Copy::Recursive' => 0,
         'IO::Socket::INET' => 0,
-        'File::Slurp' => 0,
     },
     requires => {
         perl              => '5.10.0',
