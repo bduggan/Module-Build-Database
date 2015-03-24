@@ -1,12 +1,11 @@
 package Test::MBD;
 
 use Module::Build::Database;
-use File::Slurp 'slurp';
 
 use strict;
 use warnings;
 
-our $VERSION = '0.55';
+our $VERSION = '0.56';
 
 sub import {
     my $class = shift;
