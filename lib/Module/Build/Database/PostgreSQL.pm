@@ -328,7 +328,15 @@ sub _start_new_db {
         my $pmopts = qq[-k $dbdir -h '' -p 5432];
 
         debug "# starting postgres in $dbdir";
-        do_system($Bin{Pgctl}, qq[-o "$pmopts"], "-w", "-t", 120, "-D", "$dbdir", "-l", "postmaster.log", "start") or die "could not start postgres";
+        do_system($Bin{Pgctl}, qq[-o "$pmopts"], "-w", "-t", 120, "-D", "$dbdir", "-l", "postmaster.log", "start") or do {
+            my $log;
+            if (-e "$dbdir/postmaster.log") {
+                $log = file("$dbdir/postmaster.log")->slurp;
+            } else {
+                $log = "no log file : $dbdir/postmaster.log";
+            }
+            die "could not start postgres\n$log\n ";
+        };
 
         my $domain = $dbdir.'/.s.PGSQL.5432';
         -e $domain or die "could not find $domain";
