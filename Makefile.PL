@@ -3,22 +3,22 @@ require 5.010000;
 use ExtUtils::MakeMaker;
 WriteMakefile
 (
+  'NAME' => 'Module::Build::Database',
+  'EXE_FILES' => [],
+  'PL_FILES' => {},
+  'INSTALLDIRS' => 'site',
+  'VERSION_FROM' => 'lib/Module/Build/Database.pm',
   'PREREQ_PM' => {
                    'File::Which' => 0,
-                   'IO::Socket::INET' => 0,
                    'File::Copy::Recursive' => 0,
-                   'Path::Class' => 0,
-                   'Test::More' => 0,
-                   'Sub::Exporter' => 0,
-                   'Digest::MD5' => 0,
                    'List::MoreUtils' => 0,
+                   'Digest::MD5' => 0,
                    'File::ShareDir' => 0,
-                   'blib' => 0
-                 },
-  'VERSION_FROM' => 'lib/Module/Build/Database.pm',
-  'INSTALLDIRS' => 'site',
-  'PL_FILES' => {},
-  'EXE_FILES' => [],
-  'NAME' => 'Module::Build::Database'
+                   'blib' => 0,
+                   'Test::More' => 0,
+                   'IO::Socket::INET' => 0,
+                   'Sub::Exporter' => 0,
+                   'Path::Class' => 0
+                 }
 )
 ;

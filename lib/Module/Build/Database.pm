@@ -343,7 +343,7 @@ use strict;
 use Module::Build::Database::Helpers qw/debug info/;
 use base 'Module::Build';
 
-our $VERSION = '0.56';
+our $VERSION = '0.57';
 
 __PACKAGE__->add_property(database_object_class => default => "");
 
