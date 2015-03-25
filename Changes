@@ -1,5 +1,8 @@
 Revision history for Module-Build-Database
 
+0.57   Tue Mar 24 21:04:25 EDT 2015
+       Fixes for test failures. 
+
 0.56   Mon Mar 23 21:45:37 EDT 2015
        Removed unused dependency, fixed pod template
 
