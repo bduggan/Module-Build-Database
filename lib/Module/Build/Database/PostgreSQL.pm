@@ -312,7 +312,11 @@ sub _start_new_db {
 
         debug "initializing database (log: $initlog)";
 
-        do_system($Bin{Initdb}, "-D", "$dbdir", ">>", "$initlog", "2>&1") or die "could not initdb";
+        do_system($Bin{Initdb}, "-D", "$dbdir", ">>", "$initlog", "2>&1") or do {
+            my $log = '';
+            $log = file($initlog)->slurp if -e $initlog;
+            die "could not initdb ($Bin{Initdb})\n$log\n";
+        };
 
         if (my $conf_append = $self->database_options('append_to_conf')) {
             die "cannot find postgresql.conf" unless -e "$dbdir/postgresql.conf";
