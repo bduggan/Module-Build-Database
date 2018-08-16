@@ -417,9 +417,6 @@ sub _dump_base_sql {
         and $_ !~ /^CREATE SCHEMA $database_schema;$/
         and $_ !~ /^SET (search_path|lock_timeout)/
     } @lines;
-    for (@lines) {
-        /alter table/i and s/$database_schema\.//;
-    }
     file($outfile)->spew(join '', @lines);
     if (@lines > 0 && !-s $outfile) {
         die "# Unable to write to $outfile";
